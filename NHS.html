@@ -1,0 +1,1251 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NHS UK | Agentic AI JML Orchestration — One-page POV</title>
+    <meta name="description"
+        content="One-page solution POV: Agentic AI-powered Joiner/Mover/Leaver orchestration across NHS ERP/CRM/identity/ITSM systems." />
+
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!--
+    Design notes:
+    - Premium "Tech x Public Sector" aesthetic. 
+    - GOV.UK Design System palette preserved but elevated with modern UI patterns.
+    - Custom "Workflow Canvas" implementation (n8n style).
+    -->
+
+    <style>
+        :root {
+            /* Core Palette - GDS Aligned but vibrated */
+            --nhs-blue: #005EB8;
+            --nhs-bright-blue: #0072CE;
+            --nhs-dark-blue: #003087;
+            --nhs-black: #231f20;
+            --nhs-white: #ffffff;
+            --nhs-pale-grey: #f0f4f5;
+
+            /* Extended Palette for AI/Tech feel */
+            --primary: var(--nhs-blue);
+            --primary-dark: var(--nhs-dark-blue);
+            --accent-teal: #00A499;
+            /* NHS Teal */
+            --accent-purple: #8C52FF;
+            /* Modern AI Purple */
+            --accent-pink: #D53F8C;
+            /* AI Process */
+            --accent-success: #007F3B;
+            /* NHS Green */
+            --accent-warning: #FFB81C;
+            /* NHS Yellow */
+            --accent-kpi-red: #DA291C;
+            /* NHS Red */
+
+            /* UI Tokens */
+            --bg-body: #F8FAFC;
+            --bg-card: #FFFFFF;
+            --bg-glass: rgba(255, 255, 255, 0.7);
+
+            --text-main: #111827;
+            --text-secondary: #4B5563;
+            --text-tertiary: #9CA3AF;
+
+            --border-subtle: rgba(0, 0, 0, 0.06);
+            --border-highlight: rgba(255, 255, 255, 0.4);
+
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 30px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--font-sans);
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            background-image:
+                radial-gradient(circle at 10% 0%, rgba(0, 94, 184, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 90% 10%, rgba(0, 164, 153, 0.03) 0%, transparent 40%);
+        }
+
+        /* Utilities */
+        a {
+            color: var(--nhs-blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: var(--nhs-dark-blue);
+            text-decoration: underline;
+        }
+
+        .wrap {
+            width: 100%;
+            max-width: none;
+            margin: 0;
+            padding: 32px;
+        }
+
+        /* Typography */
+        h1,
+        h2,
+        h3,
+        h4 {
+            letter-spacing: -0.025em;
+            margin-top: 0;
+            color: var(--text-main);
+        }
+
+        /* HERO SECTION */
+        .hero {
+            position: relative;
+            background: linear-gradient(135deg, #02122b 0%, #003087 100%);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            color: white;
+            padding: 0;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeIn 0.8s var(--ease-smooth);
+        }
+
+        /* Hero Background Mesh Effect */
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background:
+                radial-gradient(1000px circle at center, rgba(0, 164, 153, 0.15), transparent 50%),
+                radial-gradient(800px circle at 80% 80%, rgba(140, 82, 255, 0.15), transparent 50%);
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        .hero-inner {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+            padding: 48px 40px;
+            z-index: 1;
+            align-items: center;
+            /* Center content vertically */
+        }
+
+        @media (min-width: 960px) {
+            .hero-inner {
+                grid-template-columns: 1.2fr 0.8fr;
+                padding: 64px 56px;
+            }
+        }
+
+        .hero-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .badges {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            animation: slideUp 0.6s var(--ease-spring) 0.1s backwards;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00FFB2;
+            box-shadow: 0 0 10px rgba(0, 255, 178, 0.5);
+        }
+
+        .hero h1 {
+            font-size: clamp(32px, 4vw, 48px);
+            line-height: 1.1;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(to bottom right, #ffffff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 20px rgba(0, 48, 135, 0.3);
+            animation: slideUp 0.6s var(--ease-spring) 0.2s backwards;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 32px;
+            max-width: 600px;
+            font-weight: 400;
+            line-height: 1.6;
+            animation: slideUp 0.6s var(--ease-spring) 0.3s backwards;
+        }
+
+        .value-props {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            animation: slideUp 0.6s var(--ease-spring) 0.4s backwards;
+        }
+
+        @media (min-width: 600px) {
+            .value-props {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .prop-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .prop-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .prop-card h3 {
+            font-size: 15px;
+            color: #4dc5ff;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .prop-card p {
+            margin: 0;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.5;
+        }
+
+        /* Hero Sidebar / Glass Cards */
+        .hero-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            animation: slideUp 0.6s var(--ease-spring) 0.5s backwards;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-panel h3 {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 12px;
+        }
+
+        .glass-panel ul {
+            margin: 0;
+            padding-left: 20px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+        }
+
+        .glass-panel li {
+            margin-bottom: 8px;
+        }
+
+        .hero-footer {
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 16px 40px;
+            /* Base padding */
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        @media (min-width: 960px) {
+            .hero-footer {
+                padding: 16px 56px;
+                /* Match hero-inner horizontal padding */
+            }
+        }
+
+        .tag {
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* MAIN GRID LAYOUT */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        @media (min-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 3fr 1fr;
+            }
+        }
+
+        /* CARDS */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-subtle);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: box-shadow 0.3s var(--ease-smooth), transform 0.3s var(--ease-smooth);
+            animation: fadeIn 0.8s var(--ease-smooth) 0.6s backwards;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            border-color: rgba(0, 94, 184, 0.15);
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, #fff, #fafafa);
+        }
+
+        .card-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0;
+            color: var(--nhs-blue);
+        }
+
+        .card-header small {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            background: var(--nhs-pale-grey);
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+
+        .card-body {
+            padding: 24px;
+            flex: 1;
+        }
+
+        /* WORKFLOW CANVAS (Replacements D3) */
+        .workflow-editor {
+            width: 100%;
+            height: 600px;
+            background-color: #1a1d21;
+            /* Dark Slate Canvas */
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--radius-lg);
+            /* Dot Grid Pattern */
+            background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 24px 24px;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5);
+            cursor: grab;
+            transition: width 0.3s, height 0.3s, border-radius 0.3s;
+        }
+
+        .workflow-editor.modal-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            border-radius: 0;
+            margin: 0;
+        }
+
+        .canvas-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-origin: 0 0;
+            transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .expand-btn {
+            background: none;
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 4px 8px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+
+        .expand-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--nhs-blue);
+        }
+
+        .workflow-editor:active {
+            cursor: grabbing;
+        }
+
+        .canvas-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-origin: 0 0;
+        }
+
+        /* SVG Connectors Layer */
+        .connections-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .connection-path {
+            fill: none;
+            stroke: #5d636b;
+            stroke-width: 2px;
+            transition: stroke 0.3s;
+        }
+
+        .connection-path.active {
+            stroke: var(--accent-purple);
+            stroke-width: 3px;
+            animation: dash 1s linear infinite;
+            stroke-dasharray: 10, 10;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -20;
+            }
+        }
+
+        /* Node Cards */
+        .node {
+            position: absolute;
+            width: 220px;
+            background: #2b3036;
+            /* Node Bg */
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            user-select: none;
+            transition: box-shadow 0.2s, transform 0.1s;
+            z-index: 1;
+        }
+
+        .node:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.3);
+            z-index: 10;
+        }
+
+        .node-header {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 700;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .node-content {
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .node-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+        }
+
+        .node-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: rgba(255, 255, 255, 0.8);
+        }
+
+        .node-info h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+            margin: 0 0 2px;
+        }
+
+        .node-info p {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        /* Node Ports */
+        .port {
+            width: 10px;
+            height: 10px;
+            background: #5d636b;
+            border-radius: 50%;
+            border: 2px solid #2b3036;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .port.in {
+            left: -6px;
+        }
+
+        .port.out {
+            right: -6px;
+            background: white;
+        }
+
+        /* Node Type Themes */
+        .node.trigger .node-header {
+            background: rgba(0, 94, 184, 0.2);
+            color: #4dabf7;
+        }
+
+        .node.trigger .node-icon {
+            background: linear-gradient(135deg, rgba(0, 94, 184, 0.4), rgba(0, 94, 184, 0.1));
+        }
+
+        .node.agent .node-header {
+            background: rgba(140, 82, 255, 0.2);
+            color: #d0bfff;
+        }
+
+        .node.agent .node-icon {
+            background: linear-gradient(135deg, rgba(140, 82, 255, 0.4), rgba(140, 82, 255, 0.1));
+        }
+
+        .node.orch .node-header {
+            background: rgba(255, 184, 28, 0.15);
+            color: #ffd43b;
+        }
+
+        .node.orch .node-icon {
+            background: linear-gradient(135deg, rgba(255, 184, 28, 0.3), rgba(255, 184, 28, 0.1));
+        }
+
+        .node.system .node-header {
+            background: rgba(0, 164, 153, 0.2);
+            color: #63e6be;
+        }
+
+        .node.system .node-icon {
+            background: linear-gradient(135deg, rgba(0, 164, 153, 0.4), rgba(0, 164, 153, 0.1));
+        }
+
+        /* KPI TABLE */
+        .kpi-table-wrap {
+            overflow-x: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        thead th {
+            text-align: left;
+            padding: 14px 16px;
+            background: var(--nhs-pale-grey);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        tbody td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            vertical-align: top;
+            transition: background 0.15s;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover td {
+            background: rgba(0, 94, 184, 0.02);
+        }
+
+        .kpi-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .metric {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--nhs-dark-blue);
+        }
+
+        .metric-context {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            display: block;
+            margin-top: 4px;
+        }
+
+        /* BENEFITS LIST */
+        .benefits-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .benefit-item {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            background: white;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+
+        .benefit-item:hover {
+            transform: translateX(4px);
+            border-color: var(--nhs-blue);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .icon-box {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(0, 94, 184, 0.1), rgba(0, 164, 153, 0.1));
+            color: var(--nhs-blue);
+            display: grid;
+            place-items: center;
+        }
+
+        .icon-box svg {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2;
+        }
+
+        .benefit-content h4 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--text-main);
+        }
+
+        .benefit-content p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* ANIMATIONS */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .wrap {
+                padding: 16px;
+            }
+
+            .hero-inner {
+                padding: 32px 24px;
+                gap: 32px;
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .diagram-container {
+                height: 450px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="wrap">
+
+        <!-- HEADER / HERO -->
+        <header class="hero" role="banner">
+            <div class="hero-inner">
+                <div class="hero-content">
+                    <div class="badges">
+                        <span class="pill"><span class="dot"></span> Agentic AI Orchestration</span>
+                        <span class="pill">NHS Cross-System Workflow</span>
+                    </div>
+
+                    <h1>One front-door for <br>Joiner / Mover / Leaver</h1>
+                    <p class="subtitle">
+                        A governed, autonomous orchestration layer that syncs HR events into consistent access changes
+                        across clinical, ITSM, and identity systems—ending the "ticket ping-pong" forever.
+                    </p>
+
+                    <div class="value-props">
+                        <div class="prop-card">
+                            <h3>⚡ Automated Orchestration</h3>
+                            <p>Specialised AI agents execute changes across Entra ID, ESR, and EPRs instantly after
+                                approval.</p>
+                        </div>
+                        <div class="prop-card">
+                            <h3>🛡️ Evidence-by-Design</h3>
+                            <p>Every decision and action is immutably logged, generating audit-ready reports
+                                automatically.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="hero-sidebar">
+                    <div class="glass-panel">
+                        <h3>Primary Outcomes</h3>
+                        <ul>
+                            <li><strong>Day-1 Readiness:</strong> Clinical staff act immediately.</li>
+                            <li><strong>"Mover Diff":</strong> Auto-revoke old roles when changing wards.</li>
+                            <li><strong>Auto-Deprovision:</strong> Instant shut-off for leavers.</li>
+                        </ul>
+                    </div>
+                    <div class="glass-panel">
+                        <h3>Ecosystem</h3>
+                        <ul>
+                            <li>ESR (Master) &harr; Entra ID</li>
+                            <li>NHSmail / M365</li>
+                            <li>Legacy ITSM (ServiceNow/Halo)</li>
+                            <li>Clinical Systems (EPR)</li>
+                        </ul>
+                    </div>
+                </aside>
+            </div>
+
+            <div class="hero-footer">
+                <span class="tag">Policy-Driven</span>
+                <span class="tag">Human-in-the-Loop</span>
+                <span class="tag">RPA + API Connectors</span>
+                <span class="tag">Role Bundling</span>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-grid">
+
+            <!-- LEFT: WORKFLOW CANVAS -->
+            <section class="card">
+                <div class="card-header">
+                    <div>
+                        <h2>Live Orchestration Workflow</h2>
+                        <small>Interactive • Drag Nodes</small>
+                    </div>
+                    <button class="expand-btn" id="expandBtn" onclick="toggleModal()">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                        </svg>
+                        Expand
+                    </button>
+                </div>
+                <!-- Canvas Container -->
+                <div class="card-body" style="padding: 0; background: #26292e;">
+                    <div id="workflowCanvas" class="workflow-editor">
+                        <div id="canvasLayer" class="canvas-layer">
+                            <svg id="connectionsSvg" class="connections-layer"></svg>
+                            <!-- Nodes will be injected here via JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT: KPI & BENEFITS -->
+            <aside class="card">
+                <div class="card-header">
+                    <h2>Impact Dashboard</h2>
+                    <small>Projected Gains</small>
+                </div>
+                <div class="card-body">
+
+                    <div class="kpi-table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Key Metric</th>
+                                    <th>Target</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="kpi-name">
+                                            <span class="status-dot" style="background: var(--accent-success);"></span>
+                                            Time-to-Productive
+                                        </div>
+                                        <span class="metric-context">From 5 days to hours</span>
+                                    </td>
+                                    <td class="metric">≤ 24 hrs</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="kpi-name">
+                                            <span class="status-dot" style="background: var(--accent-teal);"></span>
+                                            Access Audit
+                                        </div>
+                                        <span class="metric-context">Manual vs Automated</span>
+                                    </td>
+                                    <td class="metric">Real-time</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="kpi-name">
+                                            <span class="status-dot" style="background: var(--accent-kpi-red);"></span>
+                                            Deprovision SLA
+                                        </div>
+                                        <span class="metric-context">Critical apps revoked</span>
+                                    </td>
+                                    <td class="metric">
+                                        < 2 hrs</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="kpi-name">
+                                            <span class="status-dot" style="background: var(--accent-purple);"></span>
+                                            Desk Load
+                                        </div>
+                                        <span class="metric-context">JML ticket reduction</span>
+                                    </td>
+                                    <td class="metric">↓ 45%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="benefits-list">
+                        <div class="benefit-item">
+                            <div class="icon-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div class="benefit-content">
+                                <h4>Consistency at Scale</h4>
+                                <p>Rules are applied uniformly across 1,000s of staff, eliminating manual errors.</p>
+                            </div>
+                        </div>
+
+                        <div class="benefit-item">
+                            <div class="icon-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                            </div>
+                            <div class="benefit-content">
+                                <h4>Modern Experience</h4>
+                                <p>A single, consumer-grade timeline for managers instead of 12 distinct IT forms.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </aside>
+
+        </main>
+
+        <footer style="margin-top: 40px; text-align: center; color: var(--text-tertiary); font-size: 13px;">
+            <p>&copy; NHS Frontline Digitisation | Agentic Architecture POV</p>
+        </footer>
+
+    </div>
+
+    <!-- Logic Script: Workflow Engine -->
+    <script>
+        (function () {
+            // Data Model
+            // Data Model - JML Process
+            const nodes = [
+                // Trigger System
+                { id: "esr", type: "trigger", title: "ESR (HR System)", desc: "JML Event Trigger", x: 50, y: 300, icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" },
+
+                // Orchestrator
+                { id: "orch", type: "orch", title: "Process Orchestrator", desc: "Policy & Logic", x: 400, y: 300, icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" },
+
+                // Agents
+                { id: "id_agent", type: "agent", title: "Identity Agent", desc: "Entra/AD Manager", x: 750, y: 150, icon: "M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" },
+                { id: "comms_agent", type: "agent", title: "Comms Agent", desc: "M365/Email", x: 750, y: 300, icon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" },
+                { id: "erp_agent", type: "agent", title: "ERP Agent", desc: "Payroll/Finance", x: 750, y: 450, icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
+
+                // Destination Systems
+                { id: "it_plat", type: "system", title: "IT Platforms", desc: "AD / Exchange", x: 1100, y: 150, icon: "M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2m-2-4h.01M17 16h.01" },
+                { id: "crm", type: "system", title: "CRM / Service Desk", desc: "ServiceNow / Halo", x: 1100, y: 300, icon: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" },
+                { id: "erp", type: "system", title: "ERP / Payroll", desc: "Oracle / ESR Write", x: 1100, y: 450, icon: "M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" }
+            ];
+
+            const connections = [
+                // Trigger to Orchestrator
+                { source: "esr", target: "orch", active: true },
+
+                // Orchestrator to Agents
+                { source: "orch", target: "id_agent", active: true },
+                { source: "orch", target: "comms_agent", active: true },
+                { source: "orch", target: "erp_agent", active: true },
+
+                // Agents to Systems
+                { source: "id_agent", target: "it_plat", active: true },
+                { source: "comms_agent", target: "it_plat", active: true }, // M365 is IT Platform
+                { source: "comms_agent", target: "crm", active: true },    // Notify CRM
+                { source: "erp_agent", target: "erp", active: true }
+            ];
+
+            const canvasContainer = document.getElementById("workflowCanvas");
+            const canvasLayer = document.getElementById("canvasLayer");
+            const svgLayer = document.getElementById("connectionsSvg");
+
+            let isDragging = false;
+            let currentDragNode = null;
+            let currentScale = 1;
+            // Drag offsets need to be in "Scene Coordinates" (divided by scale)
+            let dragStartScenePos = { x: 0, y: 0 };
+            let dragStartNodePos = { x: 0, y: 0 };
+
+            // Initialize
+            function init() {
+                renderNodes();
+                drawConnections();
+                // small delay to ensure layout
+                setTimeout(fitToScreen, 100);
+                window.addEventListener('resize', fitToScreen);
+            }
+
+            // Expose to global for HTML onClick attributes
+            window.toggleModal = function () {
+                canvasContainer.classList.toggle("modal-mode");
+                const btn = document.getElementById("expandBtn");
+
+                if (canvasContainer.classList.contains("modal-mode")) {
+                    btn.innerHTML = `
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg> Close
+                    `;
+                    document.body.style.overflow = "hidden"; // Prevent scrolling behind
+                } else {
+                    btn.innerHTML = `
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                        </svg> Expand
+                    `;
+                    document.body.style.overflow = "";
+                }
+
+                // Re-fit after transition
+                setTimeout(fitToScreen, 305);
+            };
+
+            function fitToScreen() {
+                // Determine bounding box of all nodes
+                const allX = nodes.map(n => n.x);
+                const allY = nodes.map(n => n.y);
+                const minX = Math.min(...allX);
+                const maxX = Math.max(...allX) + 220; // + node width
+                const minY = Math.min(...allY);
+                const maxY = Math.max(...allY) + 150; // + node height buffer
+
+                const contentWidth = maxX - minX;
+                const contentHeight = maxY - minY;
+
+                // Pad the content bounds
+                const padding = 60;
+
+                // Get container dimensions
+                const containerWidth = canvasContainer.clientWidth;
+                const containerHeight = canvasContainer.clientHeight;
+
+                // Calculate scale to fit
+                const scaleX = (containerWidth - padding * 2) / contentWidth;
+                const scaleY = (containerHeight - padding * 2) / contentHeight;
+                // Choose smallest scale to fit both dims, clamp to max 1.0
+                currentScale = Math.min(scaleX, scaleY, 1.2);
+
+                // Center the content
+                // We want to translate such that the center of content aligns with center of container
+                const contentCenterX = minX + contentWidth / 2;
+                const contentCenterY = minY + contentHeight / 2;
+
+                // Determine offset to center the scaled content
+                // (ContainerCenter - ContentCenter * Scale)
+                const translateX = (containerWidth / 2) - (contentCenterX * currentScale);
+                const translateY = (containerHeight / 2) - (contentCenterY * currentScale);
+
+                canvasLayer.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+            }
+
+            function renderNodes() {
+                nodes.forEach(node => {
+                    const el = document.createElement("div");
+                    el.className = `node ${node.type}`;
+                    el.id = node.id;
+                    el.style.left = node.x + "px";
+                    el.style.top = node.y + "px";
+
+                    el.innerHTML = `
+                        <div class="node-header">
+                            <span>${node.type.toUpperCase()}</span>
+                            <span>●</span>
+                        </div>
+                        <div class="node-content">
+                            <div class="node-icon">
+                                <svg viewBox="0 0 24 24"><path d="${node.icon}" stroke="none" fill="currentColor"></path></svg>
+                            </div>
+                            <div class="node-info">
+                                <h4>${node.title}</h4>
+                                <p>${node.desc}</p>
+                            </div>
+                        </div>
+                        <div class="port in"></div>
+                        <div class="port out"></div>
+                    `;
+
+                    // Drag Logic Start
+                    el.addEventListener("mousedown", (e) => {
+                        e.stopPropagation(); // prevent other canvas interactions
+                        isDragging = true;
+                        currentDragNode = node;
+
+                        // Store simple start positions
+                        dragStartScenePos = { x: e.clientX, y: e.clientY };
+                        dragStartNodePos = { x: node.x, y: node.y };
+
+                        el.style.zIndex = 100;
+                        el.style.cursor = "grabbing";
+                    });
+
+                    canvasLayer.appendChild(el);
+                });
+            }
+
+            // Global Mouse Events
+            document.addEventListener("mousemove", (e) => {
+                if (isDragging && currentDragNode) {
+                    // Logic: DistMovedOnScreen / Scale = DistMovedInScene
+                    const dxScreen = e.clientX - dragStartScenePos.x;
+                    const dyScreen = e.clientY - dragStartScenePos.y;
+
+                    const dxScene = dxScreen / currentScale;
+                    const dyScene = dyScreen / currentScale;
+
+                    const newX = dragStartNodePos.x + dxScene;
+                    const newY = dragStartNodePos.y + dyScene;
+
+                    currentDragNode.x = newX;
+                    currentDragNode.y = newY;
+
+                    const el = document.getElementById(currentDragNode.id);
+                    el.style.left = newX + "px";
+                    el.style.top = newY + "px";
+
+                    // Optimization: Use requestAnimationFrame for heavier updates if needed, 
+                    // but simple connector redraw is usually fast enough.
+                    requestAnimationFrame(drawConnections);
+                }
+            });
+
+            document.addEventListener("mouseup", () => {
+                if (currentDragNode) {
+                    const el = document.getElementById(currentDragNode.id);
+                    el.style.zIndex = "";
+                    el.style.cursor = "";
+                }
+                isDragging = false;
+                currentDragNode = null;
+            });
+
+            // Draw Connections
+            function drawConnections() {
+                // Clear existing
+                svgLayer.innerHTML = "";
+
+                connections.forEach(conn => {
+                    const sourceNode = nodes.find(n => n.id === conn.source);
+                    const targetNode = nodes.find(n => n.id === conn.target);
+                    if (!sourceNode || !targetNode) return;
+
+                    // Calculate port positions (Right of source, Left of target)
+                    const sX = sourceNode.x + 220; // Width of node
+                    const sY = sourceNode.y + 50;  // Approx half height
+
+                    const tX = targetNode.x;
+                    const tY = targetNode.y + 50;
+
+                    const dist = Math.abs(tX - sX) * 0.5;
+                    // Cubic Bezier
+                    const d = `M ${sX} ${sY} C ${sX + dist} ${sY}, ${tX - dist} ${tY}, ${tX} ${tY}`;
+
+                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    path.setAttribute("d", d);
+                    path.setAttribute("class", `connection-path ${conn.active ? 'active' : ''}`);
+
+                    svgLayer.appendChild(path);
+
+                    // Add packet animation if active
+                    if (conn.active) {
+                        const packet = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                        packet.setAttribute("r", "4");
+                        packet.setAttribute("fill", "#8C52FF");
+                        packet.innerHTML = `
+                            <animateMotion 
+                                dur="${1.5 + Math.random()}s" 
+                                repeatCount="indefinite" 
+                                path="${d}"
+                                keyPoints="0;1"
+                                keyTimes="0;1"
+                                calcMode="linear"
+                            />
+                        `;
+                        svgLayer.appendChild(packet);
+                    }
+                });
+            }
+
+            // Run
+            init();
+
+        })();
+    </script>
+</body>
+
+</html>

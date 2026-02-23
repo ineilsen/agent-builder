@@ -1,0 +1,2618 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agentic JML Control Center — Mockup</title>
+    <meta name="description"
+        content="Futuristic single-page web app mockup: Agentic AI-powered JML control center with real-time processing, HITL fallouts, and Next Best Action recommendations." />
+
+    <style>
+        /* ---------- Futuristic palette (elegant, high-contrast, accessible) ---------- */
+        :root {
+            --bg-0: #070A12;
+            --bg-1: #0B1020;
+            --bg-2: #0F1730;
+            --panel: #0E152B;
+            --panel-2: #0C1327;
+            --border: rgba(255, 255, 255, .10);
+            --border-2: rgba(255, 255, 255, .07);
+
+            --text: #EAF0FF;
+            --muted: rgba(234, 240, 255, .72);
+            --muted-2: rgba(234, 240, 255, .56);
+
+            --accent: #4EE3C1;
+            /* mint-teal */
+            --accent-2: #7C5CFF;
+            /* violet */
+            --accent-3: #2BB6FF;
+            /* cyan */
+            --warn: #FFCA3A;
+            --danger: #FF4D6D;
+            --ok: #2FE59E;
+
+            --shadow: 0 18px 60px rgba(0, 0, 0, .50);
+            --shadow-soft: 0 12px 28px rgba(0, 0, 0, .35);
+            --radius-xl: 22px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 10px;
+
+            --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        }
+
+        /* Optional light mode */
+        [data-theme="light"] {
+            --bg-0: #f6f7fb;
+            --bg-1: #ffffff;
+            --bg-2: #f1f4fb;
+            --panel: #ffffff;
+            --panel-2: #ffffff;
+            --border: rgba(10, 12, 20, .10);
+            --border-2: rgba(10, 12, 20, .06);
+
+            --text: #0A0C14;
+            --muted: rgba(10, 12, 20, .72);
+            --muted-2: rgba(10, 12, 20, .56);
+
+            --shadow: 0 18px 60px rgba(0, 0, 0, .10);
+            --shadow-soft: 0 12px 28px rgba(0, 0, 0, .08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--font);
+            color: var(--text);
+            background:
+                radial-gradient(1200px 600px at 20% 10%, rgba(124, 92, 255, .18), transparent 55%),
+                radial-gradient(900px 500px at 80% 20%, rgba(78, 227, 193, .14), transparent 55%),
+                radial-gradient(900px 600px at 70% 90%, rgba(43, 182, 255, .10), transparent 60%),
+                linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 45%, var(--bg-2) 100%);
+            overflow: hidden;
+        }
+
+        /* Focus */
+        :focus-visible {
+            outline: 3px solid rgba(255, 202, 58, .95);
+            outline-offset: 3px;
+            border-radius: 12px;
+        }
+
+        /* ---------- App layout ---------- */
+        .app {
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 280px 1fr 360px;
+            grid-template-rows: 70px 1fr;
+            grid-template-areas:
+                "nav top top"
+                "nav main side";
+            gap: 14px;
+            padding: 14px;
+        }
+
+        .topbar {
+            grid-area: top;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, .02));
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(12px);
+        }
+
+        .nav {
+            grid-area: nav;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, .02));
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(12px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .main {
+            grid-area: main;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(12px);
+            overflow: hidden;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .side {
+            grid-area: side;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(12px);
+            overflow: hidden;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ---------- Topbar ---------- */
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 260px;
+        }
+
+        .logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background:
+                radial-gradient(18px 18px at 30% 30%, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 60%),
+                linear-gradient(135deg, rgba(78, 227, 193, .95), rgba(124, 92, 255, .92));
+            box-shadow: 0 12px 30px rgba(124, 92, 255, .25);
+            border: 1px solid rgba(255, 255, 255, .18);
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 15px;
+            letter-spacing: .2px;
+            line-height: 1.1;
+        }
+
+        .brand small {
+            display: block;
+            margin-top: 2px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .search {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .04);
+            min-width: min(420px, 44vw);
+        }
+
+        .search input {
+            width: 100%;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--text);
+            font-size: 13px;
+        }
+
+        .search .kbd {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted-2);
+            padding: 4px 8px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, .03);
+            white-space: nowrap;
+        }
+
+        .btn {
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .04);
+            color: var(--text);
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform .12s ease, background .12s ease, border-color .12s ease;
+            user-select: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(255, 255, 255, .18);
+            background: rgba(255, 255, 255, .06);
+        }
+
+        .btn.primary {
+            border-color: rgba(78, 227, 193, .40);
+            background: linear-gradient(135deg, rgba(78, 227, 193, .20), rgba(43, 182, 255, .12));
+        }
+
+        .btn.danger {
+            border-color: rgba(255, 77, 109, .45);
+            background: linear-gradient(135deg, rgba(255, 77, 109, .18), rgba(255, 202, 58, .06));
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+            color: var(--muted);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--ok);
+            box-shadow: 0 0 0 3px rgba(47, 229, 158, .15);
+        }
+
+        .dot.warn {
+            background: var(--warn);
+            box-shadow: 0 0 0 3px rgba(255, 202, 58, .15);
+        }
+
+        .dot.bad {
+            background: var(--danger);
+            box-shadow: 0 0 0 3px rgba(255, 77, 109, .15);
+        }
+
+        /* ---------- Nav ---------- */
+        .nav-head {
+            padding: 16px 16px 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .nav-head .title {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-head .title b {
+            font-size: 13px;
+            letter-spacing: .2px;
+        }
+
+        .nav-head .title span {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .nav-list {
+            padding: 8px;
+            overflow: auto;
+            min-height: 0;
+        }
+
+        .nav-item {
+            padding: 12px 12px;
+            border-radius: 14px;
+            border: 1px solid transparent;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+            transition: background .12s ease, border-color .12s ease, transform .12s ease;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, .04);
+            border-color: var(--border);
+            transform: translateY(-1px);
+        }
+
+        .nav-item.active {
+            color: var(--text);
+            background: linear-gradient(135deg, rgba(124, 92, 255, .12), rgba(78, 227, 193, .08));
+            border-color: rgba(124, 92, 255, .25);
+        }
+
+        .nav-item .badge {
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+            color: var(--muted);
+        }
+
+        .nav-foot {
+            margin-top: auto;
+            padding: 14px 16px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+            cursor: pointer;
+            user-select: none;
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .toggle span {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .switch {
+            width: 42px;
+            height: 24px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .04);
+            position: relative;
+        }
+
+        .switch::after {
+            content: "";
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(78, 227, 193, .95), rgba(43, 182, 255, .90));
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: left .16s ease;
+            box-shadow: 0 8px 18px rgba(43, 182, 255, .18);
+        }
+
+        [data-theme="light"] .switch::after {
+            background: linear-gradient(135deg, rgba(124, 92, 255, .92), rgba(43, 182, 255, .88));
+        }
+
+        .switch.on::after {
+            left: 20px;
+        }
+
+        /* ---------- Main content ---------- */
+        .main-head {
+            padding: 14px 16px 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .main-head h2 {
+            margin: 0;
+            font-size: 14px;
+            letter-spacing: .2px;
+        }
+
+        .main-head p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            max-width: 70ch;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .tab {
+            padding: 9px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+            color: var(--muted);
+            font-size: 12px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .tab.active {
+            color: var(--text);
+            border-color: rgba(78, 227, 193, .35);
+            background: linear-gradient(135deg, rgba(78, 227, 193, .12), rgba(124, 92, 255, .10));
+        }
+
+        .main-body {
+            padding: 14px;
+            overflow: auto;
+            min-height: 0;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        @media (min-width: 1250px) {
+            .main-body {
+                grid-template-columns: 1.2fr .8fr;
+                align-items: start;
+            }
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        @media (min-width: 950px) {
+            .grid2 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            background: rgba(255, 255, 255, .03);
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .card .ch {
+            padding: 12px 12px 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .card .ch b {
+            font-size: 13px;
+            letter-spacing: .2px;
+        }
+
+        .card .ch small {
+            font-size: 11px;
+            color: var(--muted-2);
+            font-family: var(--mono);
+        }
+
+        .card .cb {
+            padding: 12px;
+        }
+
+        /* ---------- Widgets ---------- */
+        .kpis {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        @media (max-width: 1150px) {
+            .kpis {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        .kpi {
+            padding: 12px;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border);
+            background:
+                radial-gradient(300px 120px at 25% 15%, rgba(78, 227, 193, .16), transparent 55%),
+                linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, .02));
+            box-shadow: var(--shadow-soft);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .kpi .meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+
+        .kpi .meta span {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .kpi .meta b {
+            font-size: 20px;
+            letter-spacing: -.3px;
+            line-height: 1.1;
+        }
+
+        .kpi .meta small {
+            font-size: 11px;
+            color: var(--muted-2);
+            font-family: var(--mono);
+        }
+
+        .ring {
+            width: 52px;
+            height: 52px;
+            position: relative;
+            display: grid;
+            place-items: center;
+        }
+
+        .ring svg {
+            width: 52px;
+            height: 52px;
+            transform: rotate(-90deg);
+        }
+
+        .ring .val {
+            position: absolute;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .pipeline {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        @media (max-width: 1050px) {
+            .pipeline {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stage {
+            padding: 10px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+            min-height: 86px;
+        }
+
+        .stage .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .stage .row b {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .stage .row span {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text);
+        }
+
+        .bar {
+            height: 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .bar>i {
+            display: block;
+            height: 100%;
+            width: 40%;
+            background: linear-gradient(90deg, rgba(78, 227, 193, .75), rgba(43, 182, 255, .55), rgba(124, 92, 255, .55));
+            border-radius: 999px;
+            box-shadow: 0 0 18px rgba(43, 182, 255, .20);
+        }
+
+        /* Tables */
+        .table-tools {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .select {
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+            color: var(--text);
+            padding: 9px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow: hidden;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+        }
+
+        .table thead th {
+            text-align: left;
+            font-size: 11px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--muted-2);
+            padding: 10px 10px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+            position: sticky;
+            top: 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .table tbody td {
+            padding: 10px 10px;
+            font-size: 12.5px;
+            border-bottom: 1px solid var(--border-2);
+            vertical-align: top;
+        }
+
+        .table tbody tr {
+            cursor: pointer;
+            transition: background .12s ease;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(255, 255, 255, .04);
+        }
+
+        .pill2 {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+            font-size: 11.5px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .pill2 strong {
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .sev {
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .02);
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .sev.s1 {
+            border-color: rgba(255, 77, 109, .45);
+            color: rgba(255, 77, 109, .95);
+            background: rgba(255, 77, 109, .10);
+        }
+
+        .sev.s2 {
+            border-color: rgba(255, 202, 58, .40);
+            color: rgba(255, 202, 58, .95);
+            background: rgba(255, 202, 58, .10);
+        }
+
+        .sev.s3 {
+            border-color: rgba(78, 227, 193, .35);
+            color: rgba(78, 227, 193, .95);
+            background: rgba(78, 227, 193, .10);
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .status i {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: rgba(234, 240, 255, .35);
+        }
+
+        .status.ok i {
+            background: var(--ok);
+            box-shadow: 0 0 0 3px rgba(47, 229, 158, .13);
+        }
+
+        .status.run i {
+            background: var(--accent-3);
+            box-shadow: 0 0 0 3px rgba(43, 182, 255, .13);
+        }
+
+        .status.wait i {
+            background: var(--warn);
+            box-shadow: 0 0 0 3px rgba(255, 202, 58, .13);
+        }
+
+        .status.fail i {
+            background: var(--danger);
+            box-shadow: 0 0 0 3px rgba(255, 77, 109, .13);
+        }
+
+        /* ---------- Side panel (HITL + Agent) ---------- */
+        .side-head {
+            padding: 14px 16px 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .side-head b {
+            font-size: 13px;
+            letter-spacing: .2px;
+        }
+
+        .side-head small {
+            color: var(--muted-2);
+            font-size: 11px;
+            font-family: var(--mono);
+        }
+
+        .side-body {
+            padding: 14px;
+            overflow: auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .queue {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .case {
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+            border-radius: var(--radius-lg);
+            padding: 12px;
+            cursor: pointer;
+            transition: transform .12s ease, background .12s ease, border-color .12s ease;
+        }
+
+        .case:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, .04);
+            border-color: rgba(255, 255, 255, .16);
+        }
+
+        .case .top {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .case .top b {
+            font-size: 12.5px;
+            letter-spacing: .1px;
+        }
+
+        .case .top .id {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted-2);
+            white-space: nowrap;
+        }
+
+        .case .mid {
+            margin-top: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .nba {
+            margin-top: 10px;
+            border-top: 1px solid var(--border-2);
+            padding-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nba .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .nba .row span {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .confidence {
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(78, 227, 193, .35);
+            background: rgba(78, 227, 193, .10);
+            color: rgba(78, 227, 193, .95);
+            white-space: nowrap;
+        }
+
+        .confidence.mid {
+            border-color: rgba(255, 202, 58, .40);
+            background: rgba(255, 202, 58, .10);
+            color: rgba(255, 202, 58, .95);
+        }
+
+        .confidence.low {
+            border-color: rgba(255, 77, 109, .40);
+            background: rgba(255, 77, 109, .10);
+            color: rgba(255, 77, 109, .95);
+        }
+
+        .agentbox {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            background:
+                radial-gradient(420px 240px at 20% 10%, rgba(124, 92, 255, .16), transparent 55%),
+                radial-gradient(420px 240px at 90% 30%, rgba(78, 227, 193, .12), transparent 55%),
+                rgba(255, 255, 255, .03);
+            overflow: hidden;
+        }
+
+        .agentbox .ah {
+            padding: 12px 12px 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .agentbox .ah b {
+            font-size: 13px;
+        }
+
+        .agentbox .ah .mode {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+            padding: 4px 8px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .03);
+        }
+
+        .chat {
+            padding: 12px;
+            max-height: 240px;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .msg {
+            max-width: 92%;
+            padding: 10px 10px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+            font-size: 12.5px;
+            color: var(--muted);
+            line-height: 1.35;
+        }
+
+        .msg.me {
+            margin-left: auto;
+            color: var(--text);
+            background: linear-gradient(135deg, rgba(78, 227, 193, .12), rgba(43, 182, 255, .08));
+            border-color: rgba(78, 227, 193, .30);
+        }
+
+        .chatbar {
+            display: flex;
+            gap: 8px;
+            padding: 10px 12px 12px;
+            border-top: 1px solid var(--border);
+            background: rgba(255, 255, 255, .02);
+        }
+
+        .chatbar input {
+            flex: 1;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+            color: var(--text);
+            padding: 10px 10px;
+            border-radius: 12px;
+            outline: none;
+            font-size: 13px;
+        }
+
+        /* ---------- Modal ---------- */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            z-index: 50;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .dialog {
+            width: min(980px, 96vw);
+            max-height: min(88vh, 860px);
+            overflow: hidden;
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, .14);
+            background:
+                radial-gradient(1000px 500px at 20% 0%, rgba(124, 92, 255, .18), transparent 55%),
+                radial-gradient(1000px 500px at 90% 20%, rgba(78, 227, 193, .14), transparent 55%),
+                linear-gradient(180deg, rgba(14, 21, 43, .98), rgba(10, 16, 32, .96));
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+            display: grid;
+            grid-template-columns: 1.05fr .95fr;
+        }
+
+        @media (max-width: 980px) {
+            .dialog {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .dleft,
+        .dright {
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dhead {
+            padding: 14px 14px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, .10);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .dhead b {
+            font-size: 14px;
+            letter-spacing: .2px;
+        }
+
+        .dhead small {
+            display: block;
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .x {
+            border: 1px solid rgba(255, 255, 255, .14);
+            background: rgba(255, 255, 255, .04);
+            color: var(--text);
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+        }
+
+        .dcontent {
+            padding: 14px;
+            overflow: auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .kv {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            gap: 8px 10px;
+            border: 1px solid rgba(255, 255, 255, .10);
+            background: rgba(255, 255, 255, .03);
+            border-radius: 16px;
+            padding: 12px;
+        }
+
+        .kv div {
+            font-size: 12.5px;
+            color: var(--muted);
+        }
+
+        .kv div:nth-child(odd) {
+            color: rgba(234, 240, 255, .78);
+            font-family: var(--mono);
+            font-size: 11.5px;
+        }
+
+        .steps {
+            border: 1px solid rgba(255, 255, 255, .10);
+            background: rgba(255, 255, 255, .03);
+            border-radius: 16px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .step .l {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .step .b {
+            width: 26px;
+            height: 26px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .04);
+            display: grid;
+            place-items: center;
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--muted);
+            flex: 0 0 26px;
+        }
+
+        .step.ok .b {
+            border-color: rgba(47, 229, 158, .30);
+            background: rgba(47, 229, 158, .10);
+            color: rgba(47, 229, 158, .95);
+        }
+
+        .step.run .b {
+            border-color: rgba(43, 182, 255, .30);
+            background: rgba(43, 182, 255, .10);
+            color: rgba(43, 182, 255, .95);
+        }
+
+        .step.wait .b {
+            border-color: rgba(255, 202, 58, .30);
+            background: rgba(255, 202, 58, .10);
+            color: rgba(255, 202, 58, .95);
+        }
+
+        .step.fail .b {
+            border-color: rgba(255, 77, 109, .30);
+            background: rgba(255, 77, 109, .10);
+            color: rgba(255, 77, 109, .95);
+        }
+
+        .step b {
+            font-size: 12.5px;
+            color: var(--text);
+        }
+
+        .step span {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .step .t {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted-2);
+            white-space: nowrap;
+            padding-top: 3px;
+        }
+
+        .nbaBox {
+            border: 1px solid rgba(78, 227, 193, .30);
+            background: linear-gradient(135deg, rgba(78, 227, 193, .12), rgba(124, 92, 255, .10));
+            border-radius: 16px;
+            padding: 12px;
+        }
+
+        .nbaBox .h {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .nbaBox .h b {
+            font-size: 13px;
+        }
+
+        .nbaBox .h .conf {
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, .14);
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        .nbaBox .p {
+            font-size: 12.5px;
+            color: rgba(234, 240, 255, .85);
+            line-height: 1.35;
+            margin: 0 0 10px;
+        }
+
+        .nbaBox .why {
+            font-size: 12px;
+            color: var(--muted);
+            border-top: 1px solid rgba(255, 255, 255, .10);
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        .nbaBox .why ul {
+            margin: 8px 0 0;
+            padding-left: 18px;
+            color: var(--muted);
+        }
+
+        .nbaBox .why li {
+            margin: 5px 0;
+        }
+
+        .actions {
+            margin-top: auto;
+            padding: 12px 14px 14px;
+            border-top: 1px solid rgba(255, 255, 255, .10);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            background: rgba(255, 255, 255, .02);
+        }
+
+        /* ---------- Toasts ---------- */
+        .toasts {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 60;
+            width: min(360px, calc(100vw - 32px));
+        }
+
+        .toast {
+            border: 1px solid rgba(255, 255, 255, .14);
+            background: rgba(16, 22, 44, .92);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 12px 12px;
+            box-shadow: var(--shadow-soft);
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            animation: pop .16s ease;
+        }
+
+        [data-theme="light"] .toast {
+            background: rgba(255, 255, 255, .92);
+        }
+
+        @keyframes pop {
+            from {
+                transform: translateY(6px);
+                opacity: .0
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1
+            }
+        }
+
+        .toast .ticon {
+            width: 30px;
+            height: 30px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .14);
+            background: rgba(255, 255, 255, .04);
+            display: grid;
+            place-items: center;
+            flex: 0 0 30px;
+        }
+
+        .toast b {
+            font-size: 12.5px;
+        }
+
+        .toast p {
+            margin: 3px 0 0;
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.35;
+        }
+
+        .toast .close {
+            margin-left: auto;
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        /* Responsive fallback */
+        @media (max-width: 1100px) {
+            .app {
+                grid-template-columns: 280px 1fr;
+                grid-template-areas:
+                    "nav top"
+                    "nav main";
+            }
+
+            .side {
+                display: none;
+            }
+
+            .search {
+                min-width: min(360px, 46vw);
+            }
+        }
+
+        @media (max-width: 860px) {
+            .app {
+                grid-template-columns: 1fr;
+                grid-template-rows: 70px 1fr;
+                grid-template-areas:
+                    "top"
+                    "main";
+            }
+
+            .nav {
+                display: none;
+            }
+
+            .search {
+                min-width: 1px;
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app" id="app">
+        <!-- NAV -->
+        <aside class="nav" aria-label="Primary navigation">
+            <div class="nav-head">
+                <div class="title">
+                    <b>Control Center</b>
+                    <span>Agentic JML • NHS demo</span>
+                </div>
+                <span class="chip" title="Realtime engine status"><span class="dot" id="engineDot"></span> Live</span>
+            </div>
+
+            <div class="nav-list">
+                <div class="nav-item active" data-view="overview">
+                    <span>Overview</span>
+                    <span class="badge" id="navAll">—</span>
+                </div>
+                <div class="nav-item" data-view="joiners">
+                    <span>Joiners</span>
+                    <span class="badge" id="navJoin">—</span>
+                </div>
+                <div class="nav-item" data-view="movers">
+                    <span>Movers</span>
+                    <span class="badge" id="navMove">—</span>
+                </div>
+                <div class="nav-item" data-view="leavers">
+                    <span>Leavers</span>
+                    <span class="badge" id="navLeave">—</span>
+                </div>
+                <div class="nav-item" data-view="fallouts">
+                    <span>Fallouts (HITL)</span>
+                    <span class="badge" id="navFallout">—</span>
+                </div>
+                <div class="nav-item" data-view="connectors">
+                    <span>Connectors</span>
+                    <span class="badge" id="navConn">—</span>
+                </div>
+                <div class="nav-item" data-view="policies">
+                    <span>Policies</span>
+                    <span class="badge">RBAC</span>
+                </div>
+                <div class="nav-item" data-view="audit">
+                    <span>Audit timeline</span>
+                    <span class="badge">WORM</span>
+                </div>
+            </div>
+
+            <div class="nav-foot">
+                <div class="toggle" id="themeToggle" role="button" tabindex="0" aria-label="Toggle theme">
+                    <span>Theme</span>
+                    <div class="switch" id="switch"></div>
+                </div>
+                <button class="btn" id="openSide" style="width:100%; justify-content:space-between;">
+                    <span>Open HITL / Agent panel</span>
+                    <span style="opacity:.7; font-family:var(--mono); font-size:11px;">Alt + \</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- TOPBAR -->
+        <header class="topbar" aria-label="Top bar">
+            <div class="brand">
+                <div class="logo" aria-hidden="true"></div>
+                <div>
+                    <h1>Agentic JML Control Center</h1>
+                    <small id="subline">Realtime orchestration • approvals • evidence-by-design</small>
+                </div>
+            </div>
+
+            <div class="search" role="search" aria-label="Search cases">
+                <span style="opacity:.75">🔎</span>
+                <input id="search" placeholder="Search: case ID, person, role, ward, system…" />
+                <span class="kbd">⌘ K</span>
+            </div>
+
+            <div class="top-actions">
+                <span class="chip"><span class="dot" id="slaDot"></span> SLA <b id="sla">—</b></span>
+                <span class="chip"><span class="dot warn" id="riskDot"></span> Risk <b id="risk">—</b></span>
+                <button class="btn primary" id="newCase">+ Simulate case</button>
+                <button class="btn" id="pause">⏸ Pause</button>
+            </div>
+        </header>
+
+        <!-- MAIN -->
+        <main class="main" aria-label="Main content">
+            <div class="main-head">
+                <div>
+                    <h2 id="viewTitle">Overview — realtime JML pipeline</h2>
+                    <p id="viewDesc">Watch cases flow through policy checks, approvals, provisioning agents, and
+                        connector execution. Fallouts route to a human-in-the-loop queue with next-best-action
+                        recommendations.</p>
+                </div>
+                <div class="tabs" aria-label="Quick filters">
+                    <div class="tab active" data-filter="all">All</div>
+                    <div class="tab" data-filter="inflight">In-flight</div>
+                    <div class="tab" data-filter="hitl">HITL</div>
+                    <div class="tab" data-filter="breach">SLA risk</div>
+                    <div class="tab" data-filter="completed">Completed</div>
+                </div>
+            </div>
+
+            <div class="main-body">
+                <section style="display:flex; flex-direction:column; gap:14px;">
+                    <!-- KPI row -->
+                    <div class="kpis" aria-label="KPIs">
+                        <div class="kpi">
+                            <div class="meta">
+                                <span>Cases processed (today)</span>
+                                <b id="kpiProcessed">—</b>
+                                <small id="kpiProcessedSub">avg cycle —</small>
+                            </div>
+                            <div class="ring" aria-label="Processing rate">
+                                <svg viewBox="0 0 42 42">
+                                    <circle cx="21" cy="21" r="18" fill="none" stroke="rgba(255,255,255,.10)"
+                                        stroke-width="4" />
+                                    <circle id="ring1" cx="21" cy="21" r="18" fill="none" stroke="rgba(78,227,193,.90)"
+                                        stroke-width="4" stroke-linecap="round" stroke-dasharray="0 113.1" />
+                                </svg>
+                                <div class="val" id="ring1Val">—</div>
+                            </div>
+                        </div>
+
+                        <div class="kpi">
+                            <div class="meta">
+                                <span>Joiner readiness (≤24h)</span>
+                                <b id="kpiJoinReady">—%</b>
+                                <small id="kpiJoinReadySub">target ≥ 95%</small>
+                            </div>
+                            <div class="ring">
+                                <svg viewBox="0 0 42 42">
+                                    <circle cx="21" cy="21" r="18" fill="none" stroke="rgba(255,255,255,.10)"
+                                        stroke-width="4" />
+                                    <circle id="ring2" cx="21" cy="21" r="18" fill="none" stroke="rgba(43,182,255,.90)"
+                                        stroke-width="4" stroke-linecap="round" stroke-dasharray="0 113.1" />
+                                </svg>
+                                <div class="val" id="ring2Val">—</div>
+                            </div>
+                        </div>
+
+                        <div class="kpi">
+                            <div class="meta">
+                                <span>Leaver deprovision SLA</span>
+                                <b id="kpiLeaveSla">—%</b>
+                                <small id="kpiLeaveSlaSub">critical access &lt; 2h</small>
+                            </div>
+                            <div class="ring">
+                                <svg viewBox="0 0 42 42">
+                                    <circle cx="21" cy="21" r="18" fill="none" stroke="rgba(255,255,255,.10)"
+                                        stroke-width="4" />
+                                    <circle id="ring3" cx="21" cy="21" r="18" fill="none" stroke="rgba(124,92,255,.90)"
+                                        stroke-width="4" stroke-linecap="round" stroke-dasharray="0 113.1" />
+                                </svg>
+                                <div class="val" id="ring3Val">—</div>
+                            </div>
+                        </div>
+
+                        <div class="kpi">
+                            <div class="meta">
+                                <span>Fallouts awaiting review</span>
+                                <b id="kpiFallouts">—</b>
+                                <small id="kpiFalloutsSub">NBA suggestions ready</small>
+                            </div>
+                            <div class="ring">
+                                <svg viewBox="0 0 42 42">
+                                    <circle cx="21" cy="21" r="18" fill="none" stroke="rgba(255,255,255,.10)"
+                                        stroke-width="4" />
+                                    <circle id="ring4" cx="21" cy="21" r="18" fill="none" stroke="rgba(255,202,58,.95)"
+                                        stroke-width="4" stroke-linecap="round" stroke-dasharray="0 113.1" />
+                                </svg>
+                                <div class="val" id="ring4Val">—</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pipeline + table -->
+                    <div class="grid2">
+                        <div class="card">
+                            <div class="ch">
+                                <b>JML Pipeline</b>
+                                <small id="pipeStamp">—</small>
+                            </div>
+                            <div class="cb">
+                                <div class="pipeline" id="pipeline"></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="ch">
+                                <b>Connector Health</b>
+                                <small>APIs • SCIM • Graph • RPA</small>
+                            </div>
+                            <div class="cb" id="connectors"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="ch">
+                            <b>Realtime case flow</b>
+                            <small>Click a row → open control modal</small>
+                        </div>
+                        <div class="cb">
+                            <div class="table-tools">
+                                <div class="filters">
+                                    <select class="select" id="typeFilter" aria-label="Filter by type">
+                                        <option value="all">All types</option>
+                                        <option value="Joiner">Joiner</option>
+                                        <option value="Mover">Mover</option>
+                                        <option value="Leaver">Leaver</option>
+                                    </select>
+                                    <select class="select" id="statusFilter" aria-label="Filter by status">
+                                        <option value="all">All statuses</option>
+                                        <option value="In-flight">In-flight</option>
+                                        <option value="HITL">HITL</option>
+                                        <option value="Completed">Completed</option>
+                                        <option value="Failed">Failed</option>
+                                    </select>
+                                    <select class="select" id="riskFilter" aria-label="Filter by risk">
+                                        <option value="all">All risk</option>
+                                        <option value="High">High</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="Low">Low</option>
+                                    </select>
+                                </div>
+                                <div style="display:flex; gap:8px; align-items:center;">
+                                    <button class="btn" id="export">⬇ Export (mock)</button>
+                                    <button class="btn" id="resolveAll">✅ Resolve all HITL</button>
+                                </div>
+                            </div>
+
+                            <table class="table" aria-label="Cases table">
+                                <thead>
+                                    <tr>
+                                        <th>Case</th>
+                                        <th>Type</th>
+                                        <th>Person & role</th>
+                                        <th>Stage</th>
+                                        <th>Risk</th>
+                                        <th>SLA</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="caseRows"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Right column widgets (in main) -->
+                <section style="display:flex; flex-direction:column; gap:14px;">
+                    <div class="card">
+                        <div class="ch">
+                            <b>Live events</b>
+                            <small>Auto-generated timeline</small>
+                        </div>
+                        <div class="cb" style="display:flex; flex-direction:column; gap:10px;" id="events"></div>
+                    </div>
+
+                    <div class="card">
+                        <div class="ch">
+                            <b>Guardrails</b>
+                            <small>Policy & safety checks</small>
+                        </div>
+                        <div class="cb" id="guardrails"></div>
+                    </div>
+
+                    <div class="card">
+                        <div class="ch">
+                            <b>HITL queue preview</b>
+                            <small>Fallouts → next best action</small>
+                        </div>
+                        <div class="cb" id="hitlPreview"></div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- SIDE (HITL + Agent) -->
+        <aside class="side" aria-label="Human-in-the-loop & Agent panel" id="side">
+            <div class="side-head">
+                <div>
+                    <b>HITL queue</b>
+                    <small id="queueStamp">—</small>
+                </div>
+                <button class="btn" id="refreshQueue">↻</button>
+            </div>
+
+            <div class="side-body">
+                <div class="queue" id="queue"></div>
+
+                <div class="agentbox">
+                    <div class="ah">
+                        <b>Orchestrator Agent</b>
+                        <span class="mode">NBA • Explain • Simulate</span>
+                    </div>
+                    <div class="chat" id="chat">
+                        <div class="msg">I’m monitoring live JML runs. Open a case to see next-best actions,
+                            explainability, and safe remediation options.</div>
+                        <div class="msg">Tip: press <span style="font-family:var(--mono); opacity:.9;">⌘K</span> to
+                            jump-search a case.</div>
+                    </div>
+                    <div class="chatbar">
+                        <input id="chatInput"
+                            placeholder="Ask: 'Why is this a fallout?' or 'Suggest safe remediation'" />
+                        <button class="btn primary" id="send">Send</button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal" id="modal" aria-hidden="true" aria-label="Case control modal">
+        <div class="dialog" role="dialog" aria-modal="true" aria-label="Case details">
+            <div class="dleft">
+                <div class="dhead">
+                    <div>
+                        <b id="mTitle">Case</b>
+                        <small id="mSub">—</small>
+                    </div>
+                    <button class="x" id="closeModal" aria-label="Close">✕</button>
+                </div>
+
+                <div class="dcontent" id="mLeft">
+                    <div class="kv" id="mKv"></div>
+                    <div class="steps" id="mSteps"></div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn" id="mSimulate">🧪 Simulate remediation</button>
+                    <button class="btn" id="mAsk">💬 Ask agent</button>
+                    <button class="btn danger" id="mEscalate">🚨 Escalate</button>
+                </div>
+            </div>
+
+            <div class="dright">
+                <div class="dhead">
+                    <div>
+                        <b>Next Best Action (NBA)</b>
+                        <small>Human-in-the-loop controls</small>
+                    </div>
+                    <span class="chip"><span class="dot warn"></span> Review</span>
+                </div>
+
+                <div class="dcontent" id="mRight">
+                    <div class="nbaBox" id="mNba"></div>
+
+                    <div class="kv" id="mActionsKv" style="margin-top: 2px;"></div>
+
+                    <div class="steps" id="mControls">
+                        <div class="step wait">
+                            <div class="l">
+                                <div class="b">1</div>
+                                <div>
+                                    <b>Approve suggested bundle</b>
+                                    <span>Apply role bundle + remove conflicting entitlements</span>
+                                </div>
+                            </div>
+                            <div class="t">HITL</div>
+                        </div>
+                        <div class="step wait">
+                            <div class="l">
+                                <div class="b">2</div>
+                                <div>
+                                    <b>Confirm exceptions</b>
+                                    <span>Keep clinical access only if justified</span>
+                                </div>
+                            </div>
+                            <div class="t">HITL</div>
+                        </div>
+                        <div class="step wait">
+                            <div class="l">
+                                <div class="b">3</div>
+                                <div>
+                                    <b>Execute</b>
+                                    <span>Run connectors: AD/Entra, NHSmail/M365, ITSM tasks</span>
+                                </div>
+                            </div>
+                            <div class="t">AUTO</div>
+                        </div>
+                        <div class="step wait">
+                            <div class="l">
+                                <div class="b">4</div>
+                                <div>
+                                    <b>Verify & record evidence</b>
+                                    <span>Generate audit pack and close the case</span>
+                                </div>
+                            </div>
+                            <div class="t">AUTO</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn" id="mEdit">✏️ Adjust</button>
+                    <button class="btn primary" id="mApprove">✅ Approve</button>
+                    <button class="btn danger" id="mReject">⛔ Reject</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOASTS -->
+    <div class="toasts" id="toasts" aria-label="Notifications"></div>
+
+    <script>
+        /* ----------------------------
+           Agentic JML Control Center
+           Single-page mockup with:
+           - realtime simulated case processing
+           - HITL fallouts queue
+           - NBA recommendations
+           - modal case control + actions
+           - elegant futuristic UI
+        -----------------------------*/
+
+        // ---------- Utilities ----------
+        const $ = (sel, root = document) => root.querySelector(sel);
+        const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+        const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+        const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+        const fmt = (n) => n.toLocaleString();
+        const now = () => new Date();
+        const time = (d = now()) => d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+        function toast(title, message) {
+            const el = document.createElement("div");
+            el.className = "toast";
+            el.innerHTML = `
+        <div class="ticon">✨</div>
+        <div>
+          <b>${title}</b>
+          <p>${message}</p>
+        </div>
+        <button class="close" aria-label="Dismiss">✕</button>
+      `;
+            $("#toasts").prepend(el);
+            const kill = () => { el.style.opacity = "0"; el.style.transform = "translateY(6px)"; setTimeout(() => el.remove(), 180); };
+            el.querySelector(".close").addEventListener("click", kill);
+            setTimeout(kill, 5200);
+        }
+
+        // ---------- App data model ----------
+        const STAGES = [
+            "Intake", "Policy checks", "Approvals", "Provisioning", "Connector exec", "Verify & evidence"
+        ];
+
+        const CONNECTORS = [
+            { name: "ESR", mode: "API", state: "ok", latency: 120 },
+            { name: "Entra/AD", mode: "SCIM", state: "ok", latency: 160 },
+            { name: "NHSmail/M365", mode: "Graph", state: "ok", latency: 210 },
+            { name: "ITSM", mode: "API", state: "ok", latency: 190 },
+            { name: "EPR", mode: "RPA", state: "warn", latency: 420 },
+            { name: "Intune", mode: "Graph", state: "ok", latency: 230 },
+            { name: "Smartcard/CIS", mode: "Task", state: "ok", latency: 999 },
+        ];
+
+        const roles = [
+            "Band 5 Nurse (Ward)", "Consultant (Clinic)", "Pharmacist", "Radiology Tech",
+            "Reception/Admin", "Bank Staff", "IT Support", "Ward Manager"
+        ];
+        const wards = ["Ward A3", "Ward B1", "ED", "ICU", "Maternity", "Outpatients", "Radiology", "Pharmacy"];
+        const orgs = ["Trust North", "Trust Central", "Trust South", "ICS Hub"];
+        const systems = ["ESR", "Entra/AD", "NHSmail", "ITSM", "EPR", "Intune", "Smartcard/CIS"];
+
+        const nbaTemplates = [
+            {
+                title: "Apply standard role bundle + remove legacy groups",
+                reasons: [
+                    "Detected overlapping entitlements from previous assignment",
+                    "Least-privilege bundle exists for this job family",
+                    "No clinical-override justification in request notes"
+                ],
+                actions: [
+                    "Assign: Ward Nurse – Standard",
+                    "Remove: Ward-ED-Privileged, EPR-SuperUser",
+                    "Create ITSM task: Smartcard role sync + verification"
+                ]
+            },
+            {
+                title: "Route to approver + request missing justification",
+                reasons: [
+                    "High-risk EPR permission requested without approver approval",
+                    "Policy requires IG/Clinical Safety sign-off",
+                    "Evidence pack missing supervisor confirmation"
+                ],
+                actions: [
+                    "Send approval: Ward Manager + IG",
+                    "Request: justification text + expiry date",
+                    "Hold connector execution pending sign-off"
+                ]
+            },
+            {
+                title: "Contain access immediately; schedule full deprovision",
+                reasons: [
+                    "Leaver detected with critical-access groups still active",
+                    "Token revocation required for policy compliance",
+                    "Device recovery task outstanding"
+                ],
+                actions: [
+                    "Revoke tokens + disable privileged groups",
+                    "Create ITSM tasks: device return + mailbox transfer",
+                    "Run full deprovision after confirmation"
+                ]
+            },
+            {
+                title: "Fix data quality in HR record; replay workflow",
+                reasons: [
+                    "ESR start date / assignment missing or inconsistent",
+                    "Role-to-entitlement mapping cannot be determined safely",
+                    "Downstream systems require org code"
+                ],
+                actions: [
+                    "Request HR correction in ESR",
+                    "Temporarily grant minimal access (email only)",
+                    "Replay provisioning once record is complete"
+                ]
+            }
+        ];
+
+        const people = [
+            "Ayesha Khan", "Oliver Smith", "Priya Patel", "Amelia Brown", "Noah Johnson", "Mia Williams",
+            "Ethan Jones", "Sophia Taylor", "Liam Davis", "Isla Wilson", "Jay Sen", "Tanisha Sen"
+        ];
+
+        const createCase = (opts = {}) => {
+            const type = opts.type || pick(["Joiner", "Mover", "Leaver"]);
+            const person = opts.person || pick(people);
+            const role = opts.role || pick(roles);
+            const ward = opts.ward || pick(wards);
+            const org = opts.org || pick(orgs);
+            const id = opts.id || `JML-${rnd(24000, 99999)}`;
+
+            const isFallout = Math.random() < (type === "Leaver" ? 0.28 : type === "Mover" ? 0.22 : 0.18);
+            const risk = isFallout ? pick(["High", "Medium"]) : pick(["Low", "Medium", "Low"]);
+            const sev = risk === "High" ? "s1" : risk === "Medium" ? "s2" : "s3";
+
+            const startStage = rnd(0, 1);
+            const nba = pick(nbaTemplates);
+            const conf = isFallout ? rnd(63, 93) : rnd(72, 98);
+
+            return {
+                id, type, person, role, ward, org,
+                createdAt: now(),
+                stageIndex: startStage,
+                stage: STAGES[startStage],
+                status: isFallout ? "HITL" : "In-flight",
+                risk, sev,
+                slaMins: rnd(15, 240),
+                etaMins: rnd(10, 120),
+                lastEventAt: now(),
+                notes: pick([
+                    "Manager requested access bundle for Monday start.",
+                    "Assignment change detected from ESR event stream.",
+                    "Termination effective today; urgent deprovision.",
+                    "Bank staff onboarding for short placement.",
+                    "Cross-org move; ensure multi-org policy compliance."
+                ]),
+                systems: shuffle(systems).slice(0, rnd(3, 6)),
+                nba: {
+                    title: nba.title,
+                    reasons: nba.reasons,
+                    actions: nba.actions,
+                    confidence: conf
+                },
+                steps: buildSteps(isFallout),
+                evidence: {
+                    approvals: isFallout ? rnd(0, 1) : rnd(1, 2),
+                    changes: rnd(6, 24),
+                    verifications: isFallout ? 0 : rnd(0, 1)
+                }
+            };
+        };
+
+        function buildSteps(isFallout) {
+            // Create a step list aligned to STAGES with statuses
+            const steps = STAGES.map((s, i) => ({
+                name: s,
+                state: i < 1 ? "ok" : "wait",
+                at: i < 1 ? time() : ""
+            }));
+
+            // Make something fail/wait if fallout
+            if (isFallout) {
+                const faultAt = pick([2, 3, 4]); // approvals/provisioning/exec
+                steps.forEach((st, i) => {
+                    if (i < faultAt) { st.state = "ok"; st.at = time(); }
+                    else if (i === faultAt) { st.state = pick(["fail", "wait"]); st.at = time(); }
+                    else { st.state = "wait"; st.at = ""; }
+                });
+            } else {
+                // Non-fallout: in-flight typically
+                const prog = rnd(1, 4);
+                steps.forEach((st, i) => {
+                    if (i < prog) { st.state = "ok"; st.at = time(); }
+                    if (i === prog) { st.state = "run"; st.at = time(); }
+                    if (i > prog) { st.state = "wait"; st.at = ""; }
+                });
+            }
+            return steps;
+        }
+
+        function shuffle(arr) {
+            const a = arr.slice();
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        // ---------- State ----------
+        let running = true;
+        let activeView = "overview";
+        let quickFilter = "all";
+
+        const state = {
+            cases: [
+                createCase({ type: "Joiner" }),
+                createCase({ type: "Mover" }),
+                createCase({ type: "Leaver" }),
+                createCase({ type: "Joiner" }),
+                createCase({ type: "Mover" }),
+                createCase({ type: "Joiner" }),
+                createCase({ type: "Leaver" }),
+                createCase({ type: "Mover" }),
+            ],
+            events: []
+        };
+
+        // Seed events
+        for (let i = 0; i < 6; i++) {
+            pushEvent(pick([
+                "Orchestrator reconciled ESR feed; 12 changes detected.",
+                "IAM Agent computed role diff; 7 entitlements removed.",
+                "NHSmail Agent queued mailbox creation; awaiting Graph response.",
+                "EPR connector latency elevated; routing to HITL fallback.",
+                "Audit pack generated for JML-54231.",
+                "Approval requested: Ward Manager + IG (high-risk)."
+            ]));
+        }
+
+        function pushEvent(text, kind = "info") {
+            const e = { at: now(), text, kind };
+            state.events.unshift(e);
+            state.events = state.events.slice(0, 10);
+        }
+
+        // ---------- Rendering ----------
+        function renderAll() {
+            renderNavCounts();
+            renderKpis();
+            renderPipeline();
+            renderConnectors();
+            renderTable();
+            renderEvents();
+            renderGuardrails();
+            renderHitlPreview();
+            renderQueue();
+            renderTopIndicators();
+            $("#pipeStamp").textContent = time();
+            $("#queueStamp").textContent = "updated " + time();
+        }
+
+        function renderNavCounts() {
+            const total = state.cases.length;
+            const join = state.cases.filter(c => c.type === "Joiner").length;
+            const move = state.cases.filter(c => c.type === "Mover").length;
+            const leave = state.cases.filter(c => c.type === "Leaver").length;
+            const fallout = state.cases.filter(c => c.status === "HITL").length;
+            $("#navAll").textContent = total;
+            $("#navJoin").textContent = join;
+            $("#navMove").textContent = move;
+            $("#navLeave").textContent = leave;
+            $("#navFallout").textContent = fallout;
+            $("#navConn").textContent = CONNECTORS.length;
+        }
+
+        function setRing(el, pct) {
+            pct = clamp(pct, 0, 100);
+            const c = 2 * Math.PI * 18; // circumference, r=18
+            const dash = (pct / 100) * c;
+            el.setAttribute("stroke-dasharray", `${dash.toFixed(1)} ${(c - dash).toFixed(1)}`);
+        }
+
+        function renderKpis() {
+            const done = state.cases.filter(c => c.status === "Completed").length;
+            const hitl = state.cases.filter(c => c.status === "HITL").length;
+            const inflight = state.cases.filter(c => c.status === "In-flight").length;
+
+            const avgCycle = rnd(18, 64);
+            $("#kpiProcessed").textContent = fmt(done + rnd(14, 38));
+            $("#kpiProcessedSub").textContent = `avg cycle ${avgCycle} mins`;
+
+            const joinReady = clamp(90 + rnd(-6, 7), 70, 99);
+            const leaveSla = clamp(92 + rnd(-7, 6), 70, 99);
+
+            $("#kpiJoinReady").textContent = joinReady + "%";
+            $("#kpiLeaveSla").textContent = leaveSla + "%";
+            $("#kpiFallouts").textContent = hitl;
+
+            setRing($("#ring1"), clamp(55 + inflight * 4, 30, 95));
+            $("#ring1Val").textContent = (clamp(55 + inflight * 4, 30, 95)) + "%";
+
+            setRing($("#ring2"), joinReady);
+            $("#ring2Val").textContent = joinReady + "%";
+
+            setRing($("#ring3"), leaveSla);
+            $("#ring3Val").textContent = leaveSla + "%";
+
+            setRing($("#ring4"), clamp(10 + hitl * 12, 0, 95));
+            $("#ring4Val").textContent = hitl + "";
+
+            $("#kpiFalloutsSub").textContent = hitl ? "NBA suggestions ready" : "No fallouts";
+        }
+
+        function renderPipeline() {
+            // Count cases by stage (stageIndex) for visible subset (view-filtered)
+            const visible = filteredCasesForView();
+            const counts = STAGES.map((s, i) => visible.filter(c => c.stageIndex === i && c.status !== "Completed").length);
+            const total = Math.max(1, counts.reduce((a, b) => a + b, 0));
+
+            const el = $("#pipeline");
+            el.innerHTML = "";
+
+            // Keep it "crisp": show 5 primary stages in UI, map Verify+Evidence into final
+            const uiStages = [
+                { name: "Intake", idx: [0] },
+                { name: "Policy & mapping", idx: [1] },
+                { name: "Approvals", idx: [2] },
+                { name: "Provision & exec", idx: [3, 4] },
+                { name: "Verify & evidence", idx: [5] }
+            ];
+
+            uiStages.forEach(st => {
+                const n = st.idx.reduce((sum, i) => sum + counts[i], 0);
+                const pct = Math.round((n / total) * 100);
+                const card = document.createElement("div");
+                card.className = "stage";
+                card.innerHTML = `
+          <div class="row">
+            <b>${st.name}</b>
+            <span>${n}</span>
+          </div>
+          <div class="bar" aria-label="${st.name} load bar">
+            <i style="width:${clamp(12 + pct, 14, 100)}%"></i>
+          </div>
+        `;
+                el.appendChild(card);
+            });
+        }
+
+        function renderConnectors() {
+            // Health widget list with animated latency
+            const wrap = $("#connectors");
+            wrap.innerHTML = "";
+            wrap.style.display = "grid";
+            wrap.style.gridTemplateColumns = "1fr";
+            wrap.style.gap = "10px";
+
+            CONNECTORS.forEach(c => {
+                const st = c.state;
+                const dot = st === "ok" ? "ok" : st === "warn" ? "wait" : "fail";
+                const latency = Math.max(70, Math.round(c.latency + rnd(-30, 40)));
+                const card = document.createElement("div");
+                card.style.border = "1px solid var(--border)";
+                card.style.borderRadius = "16px";
+                card.style.padding = "10px 10px";
+                card.style.background = "rgba(255,255,255,.03)";
+                card.innerHTML = `
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <div style="display:flex; flex-direction:column; gap:2px;">
+              <b style="font-size:12.5px;">${c.name}</b>
+              <span style="font-size:12px; color:var(--muted);">mode: <span style="font-family:var(--mono);">${c.mode}</span></span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="status ${dot}"><i></i>${st.toUpperCase()}</span>
+              <span class="sev ${st === "ok" ? "s3" : st === "warn" ? "s2" : "s1"}">${latency}ms</span>
+            </div>
+          </div>
+          <div class="bar" style="margin-top:10px;">
+            <i style="width:${clamp(18 + Math.round(500 / latency) * 8, 12, 100)}%"></i>
+          </div>
+        `;
+                wrap.appendChild(card);
+            });
+        }
+
+        function renderTopIndicators() {
+            // SLA and risk are derived
+            const hitl = state.cases.filter(c => c.status === "HITL").length;
+            const fail = state.cases.filter(c => c.status === "Failed").length;
+            const inflight = state.cases.filter(c => c.status === "In-flight").length;
+
+            const sla = clamp(95 - hitl * 2 - fail * 4 + rnd(-1, 2), 62, 99);
+            const risk = clamp(8 + hitl * 7 + fail * 9 + rnd(-2, 3), 0, 99);
+
+            $("#sla").textContent = sla + "%";
+            $("#risk").textContent = risk + "%";
+
+            const slaDot = $("#slaDot");
+            slaDot.classList.toggle("bad", sla < 85);
+            slaDot.classList.toggle("warn", sla >= 85 && sla < 92);
+            slaDot.classList.toggle("dot", true);
+
+            const riskDot = $("#riskDot");
+            riskDot.classList.toggle("bad", risk >= 70);
+            riskDot.classList.toggle("warn", risk >= 30 && risk < 70);
+            riskDot.classList.toggle("dot", true);
+        }
+
+        // ---------- Filter Logic ----------
+        function filteredCasesForView() {
+            let res = state.cases;
+
+            // 1. By navigation view
+            if (activeView === "joiners") res = res.filter(c => c.type === "Joiner");
+            if (activeView === "movers") res = res.filter(c => c.type === "Mover");
+            if (activeView === "leavers") res = res.filter(c => c.type === "Leaver");
+            if (activeView === "fallouts") res = res.filter(c => c.status === "HITL");
+
+            // 2. By search (search input logic is handled separately for pure UI filtering usually, 
+            //    but let's do a basic text match here if we want)
+            //    (For simplicity we'll let the search box filter visible rows in the table render separately or here)
+            //    Let's simple-filter here if search has text
+            const term = $("#search").value.toLowerCase();
+            if (term) {
+                res = res.filter(c =>
+                    c.id.toLowerCase().includes(term) ||
+                    c.person.toLowerCase().includes(term) ||
+                    c.role.toLowerCase().includes(term) ||
+                    c.ward.toLowerCase().includes(term)
+                );
+            }
+
+            // 3. By quick tab filter
+            if (quickFilter !== "all") {
+                if (quickFilter === "inflight") res = res.filter(c => c.status === "In-flight");
+                if (quickFilter === "hitl") res = res.filter(c => c.status === "HITL");
+                if (quickFilter === "breach") res = res.filter(c => c.sev === "s1");
+                if (quickFilter === "completed") res = res.filter(c => c.status === "Completed");
+            }
+            // Additional dropdown filters from table-tools can go here if we wire them up fully
+
+            return res;
+        }
+
+        // ---------- Renderers ----------
+        function renderTable() {
+            const tbody = $("#caseRows");
+            const cases = filteredCasesForView();
+
+            tbody.innerHTML = "";
+
+            if (cases.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--muted);">No cases match this view</td></tr>`;
+                return;
+            }
+
+            cases.forEach(c => {
+                const tr = document.createElement("tr");
+                tr.onclick = () => openModal(c);
+
+                // Status indicator
+                let dot = "ok";
+                if (c.status === "HITL") dot = "wait";
+                if (c.status === "Failed") dot = "fail";
+                if (c.status === "Completed") dot = "ok";
+
+                tr.innerHTML = `
+                  <td>
+                    <div style="font-weight:600; color:var(--text);">${c.id}</div>
+                    <div style="font-size:11px; color:var(--muted-2); font-family:var(--mono);">
+                      ${time(c.createdAt)}
+                    </div>
+                  </td>
+                  <td>
+                    <span class="pill2">
+                       ${c.type === "Joiner" ? "👋" : c.type === "Mover" ? "📦" : "👋"}
+                       ${c.type}
+                    </span>
+                  </td>
+                  <td>
+                    <div style="font-weight:500;">${c.person}</div>
+                    <div style="color:var(--muted); font-size:11.5px;">${c.role}</div>
+                  </td>
+                  <td>
+                    <span class="pill2" style="border-radius:6px;">
+                      ${c.stage}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="sev ${c.sev}">${c.risk}</span>
+                  </td>
+                  <td>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                       <div style="width:60px; height:4px; background:rgba(255,255,255,.1); border-radius:4px; overflow:hidden;">
+                          <div style="height:100%; width:${clamp(100 - (c.etaMins / c.slaMins) * 100, 5, 100)}%; background:var(--text); opacity:.4;"></div>
+                       </div>
+                       <span style="font-family:var(--mono); font-size:11px; color:var(--muted);">${c.etaMins}m</span>
+                    </div>
+                  </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderQueue() {
+            const el = $("#queue");
+            const hitl = state.cases.filter(c => c.status === "HITL");
+            el.innerHTML = "";
+
+            if (hitl.length === 0) {
+                el.innerHTML = `<div style="padding:20px; text-align:center; color:var(--muted); font-size:13px;">No items in HITL queue</div>`;
+                return;
+            }
+
+            hitl.forEach(c => {
+                const item = document.createElement("div");
+                item.className = "case";
+                item.onclick = () => openModal(c);
+                item.innerHTML = `
+                  <div class="top">
+                    <b>${c.type} • ${c.person}</b>
+                    <span class="id">${c.id}</span>
+                  </div>
+                  <div class="mid">
+                     <span class="sev ${c.sev}">${c.risk} Risk</span>
+                     <span class="pill2" style="font-size:10.5px; padding:3px 8px;">${c.role}</span>
+                  </div>
+                  <div class="nba">
+                    <div class="row">
+                       <span>NBA Confidence</span>
+                       <span class="confidence ${c.nba.confidence < 75 ? (c.nba.confidence < 50 ? 'low' : 'mid') : ''}">${c.nba.confidence}%</span>
+                    </div>
+                    <span style="font-size:11px; color:var(--muted); opacity:.7;">${c.nba.title}</span>
+                  </div>
+                `;
+                el.appendChild(item);
+            });
+        }
+
+        function renderGuardrails() {
+            const el = $("#guardrails");
+            if (Math.random() > 0.1) return; // don't redraw too often to avoid jitter if not needed, but here we redraw all for simplicity
+
+            // Just some static-ish status or derived
+            el.innerHTML = `
+               <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                 <div class="kv" style="padding:8px;"><div>SOD Policy</div><div style="color:var(--ok);">Active</div></div>
+                 <div class="kv" style="padding:8px;"><div>RBAC Map</div><div style="color:var(--ok);">Synced</div></div>
+                 <div class="kv" style="padding:8px;"><div>Toxic Combo</div><div style="color:var(--ok);">0 sets</div></div>
+                 <div class="kv" style="padding:8px;"><div>Orphan Accts</div><div style="color:var(--ok);">0 detected</div></div>
+               </div>
+            `;
+        }
+
+        function renderHitlPreview() {
+            const el = $("#hitlPreview");
+            const hitl = state.cases.filter(c => c.status === "HITL");
+
+            if (hitl.length === 0) {
+                el.innerHTML = `<div style="padding:10px; color:var(--muted); font-size:12px;">All active cases automate-able. No fallouts.</div>`; // typo fix automateable
+                return;
+            }
+            const c = hitl[0];
+            el.innerHTML = `
+              <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid var(--border);">
+                 <div class="b" style="width:32px; height:32px; background:rgba(255,100,100,.1); color:var(--danger); display:grid; place-items:center; border-radius:10px; font-weight:bold;">!</div>
+                 <div>
+                   <div style="font-size:13px; font-weight:600;">${c.type}: ${c.person}</div>
+                   <div style="font-size:11px; color:var(--muted);">${c.nba.title}</div>
+                 </div>
+              </div>
+              <button class="btn primary" style="width:100%; justify-content:center;" onclick="openModalById('${c.id}')">Resolve now</button>
+            `;
+        }
+
+        // Helper for onclick inline
+        window.openModalById = (id) => {
+            const c = state.cases.find(x => x.id === id);
+            if (c) openModal(c);
+        };
+
+        function renderEvents() {
+            const el = $("#events");
+            el.innerHTML = "";
+            state.events.forEach(e => {
+                const d = document.createElement("div");
+                d.style.display = "flex";
+                d.style.gap = "10px";
+                d.style.alignItems = "flex-start";
+                d.innerHTML = `
+                  <div style="font-family:var(--mono); font-size:10px; color:var(--muted-2); margin-top:3px; white-space:nowrap;">${time(e.at)}</div>
+                  <div style="font-size:12px; color:var(--muted); line-height:1.3;">${e.text}</div>
+                `;
+                el.appendChild(d);
+            });
+        }
+
+        // ---------- Modal & Actions ----------
+        let currentModalCase = null;
+
+        function openModal(c) {
+            currentModalCase = c;
+            $("#modal").classList.add("show");
+
+            $("#mTitle").textContent = `${c.type} • ${c.person}`;
+            $("#mSub").innerHTML = `<span style="font-family:var(--mono); opacity:.7;">${c.id}</span> &nbsp; ${c.role} at ${c.ward}`;
+
+            // Left Content
+            $("#mKv").innerHTML = `
+               <div>Status</div> <div>${c.status}</div>
+               <div>Joined</div> <div>${c.createdAt.toLocaleDateString()}</div>
+               <div>Org</div> <div>${c.org}</div>
+               <div>Systems</div> <div>${c.systems.join(", ")}</div>
+               <div>Risk Score</div> <div style="display:flex;align-items:center;gap:6px;"><span class="dot ${c.risk === 'High' ? 'bad' : c.risk === 'Medium' ? 'warn' : ''}"></span> ${c.risk}</div>
+               <div>Notes</div> <div>${c.notes}</div>
+            `;
+
+            const stepsEl = $("#mSteps");
+            stepsEl.innerHTML = "";
+            c.steps.forEach((s, idx) => {
+                const stepDiv = document.createElement("div");
+                stepDiv.className = `step ${s.state}`;
+                stepDiv.innerHTML = `
+                    <div class="l">
+                       <div class="b">${idx + 1}</div>
+                       <div><b>${s.name}</b><span>${s.state === 'fail' ? 'Failed - Needs Review' : s.state === 'wait' ? 'Pending' : 'Completed'}</span></div>
+                    </div>
+                    <div class="t">${s.at}</div>
+                 `;
+                stepsEl.appendChild(stepDiv);
+            });
+
+            // Right content (NBA)
+            const nbaDiv = $("#mNba");
+            if (c.status === "HITL") {
+                nbaDiv.style.display = "block";
+                nbaDiv.innerHTML = `
+                   <div class="h">
+                      <b>Recommended Strategy</b>
+                      <span class="conf">Confidence: ${c.nba.confidence}%</span>
+                   </div>
+                   <p class="p">${c.nba.title}</p>
+                   <div class="why">
+                      <b>Why?</b>
+                      <ul>
+                        ${c.nba.reasons.map(r => `<li>${r}</li>`).join('')}
+                      </ul>
+                   </div>
+                `;
+            } else {
+                nbaDiv.style.display = "none";
+            }
+
+            // Controls visibility
+            const rightHead = $("#mRight").parentElement.querySelector(".dhead");
+            const footer = $("#mRight").parentElement.querySelector(".actions");
+
+            if (c.status === "HITL") {
+                rightHead.style.opacity = "1";
+                $("#mControls").style.display = "flex";
+                footer.style.display = "flex";
+            } else {
+                // Read only mode for approved/completed
+                rightHead.style.opacity = "0.5";
+                $("#mControls").style.display = "none";
+                footer.style.display = "none";
+            }
+        }
+
+        $("#closeModal").onclick = () => $("#modal").classList.remove("show");
+
+        // Modal Actions
+        $("#mApprove").onclick = () => {
+            if (!currentModalCase) return;
+            // Transition
+            currentModalCase.status = "In-flight"; // or Completed logic
+            currentModalCase.steps[2].state = "ok"; currentModalCase.steps[2].at = time();
+            currentModalCase.steps[3].state = "run"; currentModalCase.steps[3].at = time();
+
+            pushEvent(`CASE APPROVED: ${currentModalCase.id} by User. Executing remediation.`);
+            toast("Approved", `Case ${currentModalCase.id} remediation started.`);
+
+            $("#modal").classList.remove("show");
+            renderAll();
+        };
+
+        $("#mReject").onclick = () => {
+            if (!currentModalCase) return;
+            currentModalCase.status = "Failed";
+            pushEvent(`CASE REJECTED: ${currentModalCase.id} by User.`);
+            toast("Rejected", `Case ${currentModalCase.id} marked as rejected.`);
+            $("#modal").classList.remove("show");
+            renderAll();
+        };
+
+        $("#mSimulate").onclick = () => {
+            toast("Simulating", "Running remediation dry-run...");
+            setTimeout(() => toast("Success", "Simulation passed all guardrails."), 1500);
+        };
+
+        // Topbar Actions
+        $("#newCase").onclick = () => {
+            const nc = createCase();
+            state.cases.unshift(nc);
+            pushEvent(`New simulation case injected: ${nc.id}`);
+            toast("New Case", `Simulated ${nc.type} for ${nc.person}`);
+            renderAll();
+        };
+
+        $("#resolveAll").onclick = () => {
+            const targets = state.cases.filter(c => c.status === "HITL");
+            if (targets.length === 0) return;
+            targets.forEach(c => {
+                c.status = "In-flight";
+                // fix steps
+                c.steps[2].state = "ok";
+            });
+            pushEvent(`Batch resolved ${targets.length} HITL cases via Auto-Approve.`);
+            toast("Batch Action", `Resolved ${targets.length} cases.`);
+            renderAll();
+        };
+
+        $("#pause").onclick = function () {
+            running = !running;
+            this.textContent = running ? "⏸ Pause" : "▶ Resume";
+            $("#engineDot").className = running ? "dot" : "dot warn";
+        };
+
+        // Navigation
+        $$(".nav-item").forEach(el => {
+            el.onclick = () => {
+                $$(".nav-item").forEach(x => x.classList.remove("active"));
+                el.classList.add("active");
+                activeView = el.dataset.view;
+                $("#viewTitle").textContent = el.dataset.view === "overview" ? "Overview — realtime JML pipeline" : `${el.querySelector("span").textContent} View`;
+                renderAll();
+            };
+        });
+
+        // Tabs
+        $$(".tab").forEach(el => {
+            el.onclick = () => {
+                $$(".tab").forEach(x => x.classList.remove("active"));
+                el.classList.add("active");
+                quickFilter = el.dataset.filter;
+                renderAll();
+            };
+        });
+
+        // Search
+        $("#search").addEventListener("input", renderAll);
+        $("#typeFilter").addEventListener("change", renderAll); // Placeholders
+
+        // Chat
+        $("#send").onclick = handleChat;
+        $("#chatInput").addEventListener("keypress", (e) => e.key === "Enter" && handleChat());
+
+        function handleChat() {
+            const inp = $("#chatInput");
+            const txt = inp.value.trim();
+            if (!txt) return;
+
+            // User msg
+            const d = document.createElement("div"); d.className = "msg me"; d.textContent = txt;
+            $("#chat").appendChild(d);
+            inp.value = "";
+
+            // Fake response
+            setTimeout(() => {
+                const r = document.createElement("div"); r.className = "msg";
+                r.textContent = "I've analyzed the policy constraints. This fallout occurred because the requested 'EPR-SuperUser' group conflicts with the user's base role of 'Band 5 Nurse'.";
+                $("#chat").appendChild(r);
+                $("#chat").scrollTop = $("#chat").scrollHeight;
+            }, 1200);
+
+            $("#chat").scrollTop = $("#chat").scrollHeight;
+        }
+
+        // Theme toggle
+        $("#themeToggle").onclick = () => {
+            const html = document.documentElement;
+            const cur = html.getAttribute("data-theme");
+            const nxt = cur === "light" ? "dark" : "light";
+            html.setAttribute("data-theme", nxt);
+            $("#switch").classList.toggle("on");
+        };
+
+        // Simulator Loop
+        setInterval(() => {
+            if (!running) return;
+
+            // Randomly advance in-flight cases
+            state.cases.forEach(c => {
+                if (c.status === "In-flight") {
+                    if (Math.random() < 0.15) {
+                        // advance stage
+                        if (c.stage < STAGES.length - 1) {
+                            // find current running step
+                            const idx = c.steps.findIndex(s => s.state === "run");
+                            if (idx > -1 && idx < c.steps.length - 1) {
+                                c.steps[idx].state = "ok";
+                                c.steps[idx + 1].state = "run";
+                                c.steps[idx + 1].at = time();
+
+                                // update top level stage
+                                c.stageIndex = idx + 1;
+                                c.stage = STAGES[c.stageIndex];
+                            } else if (idx === c.steps.length - 1) {
+                                // Complete
+                                c.steps[idx].state = "ok";
+                                c.status = "Completed";
+                                pushEvent(`Case Completed: ${c.id}`);
+                            }
+                        }
+                    }
+                }
+                // small chance to reduce eta
+                if (c.etaMins > 0 && Math.random() < 0.3) c.etaMins--;
+            });
+
+            // Random new event
+            if (Math.random() < 0.08) {
+                pushEvent(pick([
+                    "Connector 'Entra/AD' sync latency spike (220ms)",
+                    "Policy Policy-RK-22 re-evaluated for 3 active cases",
+                    "Audit stream flushed to WORM storage",
+                    "Agent detected role drift in ward A3; compensating..."
+                ]));
+            }
+
+            // Random new case
+            if (Math.random() < 0.02) {
+                state.cases.unshift(createCase());
+                if (state.cases.length > 50) state.cases.pop();
+            }
+
+            renderAll();
+        }, 1500);
+
+        // Init
+        renderAll();
+
+    </script>
+</body>
+
+</html>

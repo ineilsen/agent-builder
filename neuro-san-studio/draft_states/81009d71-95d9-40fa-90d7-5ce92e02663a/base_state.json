@@ -1,0 +1,216 @@
+{
+  "design_id": "81009d71-95d9-40fa-90d7-5ce92e02663a",
+  "network_name": "six_thinking_hats_81009d71",
+  "meta": {
+    "created_at": "2026-01-26T12:34:11.015241",
+    "updated_at": "2026-01-26T12:34:11.016021",
+    "version": 1
+  },
+  "top_level": {
+    "llm_config": {
+      "class": "openai",
+      "model_name": "gpt-4o"
+    }
+  },
+  "agents": {
+    "blue_hat": {
+      "name": "blue_hat",
+      "instructions": "You are the Blue Hat, the manager of the thinking process. You will gather insights from all other hats (White, Red, Black, Yellow, and Green) and provide a summary that suggests the best approach to solving the problem.",
+      "function": {
+        "description": "I am the Blue Hat, responsible for managing the thinking process. I will gather insights from the White, Red, Black, Yellow, and Green Hats to synthesize the best solution to a given problem."
+      },
+      "tools": [
+        "white_hat",
+        "red_hat",
+        "black_hat",
+        "yellow_hat",
+        "green_hat"
+      ],
+      "class": null,
+      "toolbox": null,
+      "args": {},
+      "allow": {},
+      "llm_config": {},
+      "display_as": null,
+      "max_message_history": null,
+      "verbose": null,
+      "max_iterations": null,
+      "max_execution_seconds": null,
+      "error_formatter": null,
+      "error_fragments": null,
+      "structure_formats": null,
+      "_parent": null
+    },
+    "white_hat": {
+      "name": "white_hat",
+      "instructions": "You are the White Hat, focusing on data and facts. Analyze the given problem and provide a factual and data-driven perspective.",
+      "function": {
+        "description": "Focuses on the available data and facts.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "problem_statement": {
+              "type": "string",
+              "description": "The problem to analyze from a factual perspective."
+            }
+          },
+          "required": [
+            "problem_statement"
+          ]
+        }
+      },
+      "tools": [],
+      "class": null,
+      "toolbox": null,
+      "args": {},
+      "allow": {},
+      "llm_config": {},
+      "display_as": null,
+      "max_message_history": null,
+      "verbose": null,
+      "max_iterations": null,
+      "max_execution_seconds": null,
+      "error_formatter": null,
+      "error_fragments": null,
+      "structure_formats": null,
+      "_parent": "blue_hat"
+    },
+    "red_hat": {
+      "name": "red_hat",
+      "instructions": "You are the Red Hat, focusing on emotions and intuition. Analyze the given problem and provide insights based on feelings and hunches.",
+      "function": {
+        "description": "Provides insights based on emotions and intuition.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "problem_statement": {
+              "type": "string",
+              "description": "The problem to analyze from an emotional and intuitive perspective."
+            }
+          },
+          "required": [
+            "problem_statement"
+          ]
+        }
+      },
+      "tools": [],
+      "class": null,
+      "toolbox": null,
+      "args": {},
+      "allow": {},
+      "llm_config": {},
+      "display_as": null,
+      "max_message_history": null,
+      "verbose": null,
+      "max_iterations": null,
+      "max_execution_seconds": null,
+      "error_formatter": null,
+      "error_fragments": null,
+      "structure_formats": null,
+      "_parent": "blue_hat"
+    },
+    "black_hat": {
+      "name": "black_hat",
+      "instructions": "You are the Black Hat, focusing on risks and challenges. Analyze the given problem and provide a critical perspective, identifying potential risks and downsides.",
+      "function": {
+        "description": "Identifies potential risks and challenges.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "problem_statement": {
+              "type": "string",
+              "description": "The problem to analyze from a risk and challenge perspective."
+            }
+          },
+          "required": [
+            "problem_statement"
+          ]
+        }
+      },
+      "tools": [],
+      "class": null,
+      "toolbox": null,
+      "args": {},
+      "allow": {},
+      "llm_config": {},
+      "display_as": null,
+      "max_message_history": null,
+      "verbose": null,
+      "max_iterations": null,
+      "max_execution_seconds": null,
+      "error_formatter": null,
+      "error_fragments": null,
+      "structure_formats": null,
+      "_parent": "blue_hat"
+    },
+    "yellow_hat": {
+      "name": "yellow_hat",
+      "instructions": "You are the Yellow Hat, focusing on positivity and benefits. Analyze the given problem and provide a perspective that highlights potential benefits and positive outcomes.",
+      "function": {
+        "description": "Looks for benefits and positive outcomes.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "problem_statement": {
+              "type": "string",
+              "description": "The problem to analyze from a positive perspective."
+            }
+          },
+          "required": [
+            "problem_statement"
+          ]
+        }
+      },
+      "tools": [],
+      "class": null,
+      "toolbox": null,
+      "args": {},
+      "allow": {},
+      "llm_config": {},
+      "display_as": null,
+      "max_message_history": null,
+      "verbose": null,
+      "max_iterations": null,
+      "max_execution_seconds": null,
+      "error_formatter": null,
+      "error_fragments": null,
+      "structure_formats": null,
+      "_parent": "blue_hat"
+    },
+    "green_hat": {
+      "name": "green_hat",
+      "instructions": "You are the Green Hat, focusing on creativity and innovation. Analyze the given problem and generate creative ideas and alternative solutions.",
+      "function": {
+        "description": "Generates creative ideas and alternative solutions.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "problem_statement": {
+              "type": "string",
+              "description": "The problem to analyze from a creative and innovative perspective."
+            }
+          },
+          "required": [
+            "problem_statement"
+          ]
+        }
+      },
+      "tools": [],
+      "class": null,
+      "toolbox": null,
+      "args": {},
+      "allow": {},
+      "llm_config": {},
+      "display_as": null,
+      "max_message_history": null,
+      "verbose": null,
+      "max_iterations": null,
+      "max_execution_seconds": null,
+      "error_formatter": null,
+      "error_fragments": null,
+      "structure_formats": null,
+      "_parent": "blue_hat"
+    }
+  },
+  "original_network_name": "six_thinking_hats"
+}

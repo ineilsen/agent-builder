@@ -1,0 +1,76 @@
+# Copyright (C) 2023-2025 Cognizant Digital Business, Evolutionary AI.
+# All Rights Reserved.
+# Issued under the Academic Public License.
+#
+# You can be released from the terms, and requirements of the Academic Public
+# License by purchasing a commercial license.
+# Purchase of a commercial license is mandatory for any use of the
+# neuro-san SDK Software in commercial settings.
+#
+# END COPYRIGHT
+
+{
+
+    "gpt-4o": {
+        "class": "azure-openai",
+        "context_window_size": 100000,
+        "max_output_tokens": 8192,
+        "stream": true,
+    },
+
+
+    # These are data for each LLM class, so they don't have to be repeated for each
+    # LLM info entry above.
+    "classes": {
+
+        # You can list your own classes to create the llms given a config
+        # if the stock llms do not suit your needs. An example entry would look
+        # like this:
+        #
+        #   "factories": [ "my_package.my_module.MyLangChainLlmFactory" ],
+        #
+        # Any classes listed must:
+        #   * Exist in the PYTHONPATH of your server
+        #   * Derive from neuro_san.internals.run_context.langchain.langchain_llm_factory.LangChainLlmFactory
+        #   * Have a no-args constructor
+
+    }
+
+    # This is the default config used if no llm_config is present at all in
+    # an agent network hocon file.  It is also used as a basis on top of which
+    # incomplete llm_configs are overlayed.
+    "default_config":{
+        "model_name": "gpt-4o",        # The string name of the default model to use.
+
+        "temperature": 0.0,                 # The default LLM temperature (randomness) to use.
+                                            # Values are floats between 0.0 (least random) to
+                                            # 1.0 (most random).
+
+        "prompt_token_fraction": 1.0,       # The fraction of total tokens (not necessarily words
+                                            # or letters) to use for a prompt. Each model_name
+                                            # has a documented number of max_tokens it can handle
+                                            # which is a total count of message + response tokens
+                                            # which goes into the calculation involved in
+                                            # get_max_prompt_tokens().
+                                            # By default the value is 1.0.
+
+        "max_tokens": null,                 # The maximum number of tokens to use in
+                                            # computing prompt tokens. By default this comes from
+                                            # the model description in this class.
+
+        # The following are more agent-level control as opposed to LLM control above.
+
+        "verbose": false,                   # Default is boolean false for quiet server operation.
+                                            # When True, responses from ChatEngine are logged to stdout.
+                                            # Can be "extra" to engage even more verbose logging from agent level.
+
+        "max_iterations":100,               # Agent control for how many iterations are done.
+                                            # People often want to increase this when there are timeouts
+                                            # and other retry-able errors due to bad network weather,
+                                            # but this is a decent default set by langchain.
+
+        "max_execution_seconds": 600,       # Amount of time an agent should keep trying in retry
+                                            # situations before giving up.
+        "deployment_name" : "gpt-4o"
+    },
+}

@@ -1,0 +1,120 @@
+CONNECTED(00000006)
+---
+Certificate chain
+ 0 s:CN = api.openai.com, O = Zscaler Inc., OU = Zscaler Inc.
+   i:C = US, ST = California, O = Zscaler Inc., OU = Zscaler Inc., CN = "Zscaler Intermediate Root CA (zscloud.net) (t) "
+   a:PKEY: rsaEncryption, 2048 (bit); sigalg: RSA-SHA256
+   v:NotBefore: Jan 28 13:39:28 2026 GMT; NotAfter: Feb  8 03:42:37 2026 GMT
+-----BEGIN CERTIFICATE-----
+MIIEgDCCA2igAwIBAgIQeX//v71E0tYNI3vyAuCVCDANBgkqhkiG9w0BAQsFADCB
+ijELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExFTATBgNVBAoMDFpz
+Y2FsZXIgSW5jLjEVMBMGA1UECwwMWnNjYWxlciBJbmMuMTgwNgYDVQQDDC9ac2Nh
+bGVyIEludGVybWVkaWF0ZSBSb290IENBICh6c2Nsb3VkLm5ldCkgKHQpIDAeFw0y
+NjAxMjgxMzM5MjhaFw0yNjAyMDgwMzQyMzdaMEcxFzAVBgNVBAMTDmFwaS5vcGVu
+YWkuY29tMRUwEwYDVQQKDAxac2NhbGVyIEluYy4xFTATBgNVBAsMDFpzY2FsZXIg
+SW5jLjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALqqH33MgegzNYgp
+UQCFh0q0MBYTO74BWixnUZJOhZgfQRl6i6W2CWPg8fmcd7WNoLzkeAdPuUHJ+ZoU
+nQ/kkMm/WFYQXTw+lcicZbYbNvhIPK5EjloT5Yx3XwQk6afgqemov6it95ZxVBGN
+omMaiCQblTivV8h2wYHIYubAB45kBsBdpO5dI+1G4/IO3OumuJIZJokf4Wp+x6Ra
+CVE9s66lx5cdHKRcTrKqpgo2aqj9SI3kgIpxAGyZwMncuwonfTPlSK4iCo6xvdRM
+9/82E9DpXsWqdmlkoMokcALrH3ifDpD9QdUtxWdm7PJN3fbfWjQzh66A2mdWByuV
+MxjslIkCAwEAAaOCASIwggEeMBMGA1UdJQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB
+/wQCMAAwKwYDVR0RBCQwIoIOYXBpLm9wZW5haS5jb22CECouYXBpLm9wZW5haS5j
+b20wDgYDVR0PAQH/BAQDAgWgMHwGA1UdHwR1MHMwN6A1oDOGMWh0dHA6Ly9nYXRl
+d2F5LnpzY2xvdWQubmV0L3pzY2FsZXItenNjcmwtLTQtMS5jcmwwOKA2oDSGMmh0
+dHA6Ly9nYXRld2F5Ni56c2Nsb3VkLm5ldC96c2NhbGVyLXpzY3JsLS00LTEuY3Js
+MB0GA1UdDgQWBBSud1p9ev8otLx8rLJkF8/VLE6JcDAfBgNVHSMEGDAWgBTXVMWW
+4yzaaRfsl6DEPIiQP5ZXcDANBgkqhkiG9w0BAQsFAAOCAQEApeT5g6OzLCWQte9Q
+zXjpz9PtXxVRvO/bn8uGM9kHL1bltr+LcciQsY7F5RpPegvEDEycCq4rn/kTrjk5
+7Ifr/3m07hCqnSKxRYaXw8SGQAwReciaa/pk6dn1tvYGVn9E4WV2V2VPP4bMQxq3
+pGDiLE5RApxYcsvdVEf4QT+1LvMSA8g0ba89L5UPpyjUz6FRfgA9UmPDTolPoCif
+JKsISmqaNR37rpKWCeSK/gyG8WlKSFGTyZNoPw7zBJoOIb5z1bVO9ex5XWR6ye8T
+Il2YItFz6QpC389fy8qlOadSq1zN9RqFEvtlh12DeyICpfTzBMEAGgSAquQvqB7O
+pJc73A==
+-----END CERTIFICATE-----
+ 1 s:C = US, ST = California, O = Zscaler Inc., OU = Zscaler Inc., CN = "Zscaler Intermediate Root CA (zscloud.net) (t) "
+   i:C = US, ST = California, O = Zscaler Inc., OU = Zscaler Inc., CN = Zscaler Intermediate Root CA (zscloud.net), emailAddress = support@zscaler.com
+   a:PKEY: rsaEncryption, 2048 (bit); sigalg: RSA-SHA256
+   v:NotBefore: Jan 25 03:42:37 2026 GMT; NotAfter: Feb  8 03:42:37 2026 GMT
+-----BEGIN CERTIFICATE-----
+MIIEWjCCA0KgAwIBAgIEaXWRLTANBgkqhkiG9w0BAQsFADCBqTELMAkGA1UEBhMC
+VVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFTATBgNVBAoTDFpzY2FsZXIgSW5jLjEV
+MBMGA1UECxMMWnNjYWxlciBJbmMuMTMwMQYDVQQDEypac2NhbGVyIEludGVybWVk
+aWF0ZSBSb290IENBICh6c2Nsb3VkLm5ldCkxIjAgBgkqhkiG9w0BCQEWE3N1cHBv
+cnRAenNjYWxlci5jb20wHhcNMjYwMTI1MDM0MjM3WhcNMjYwMjA4MDM0MjM3WjCB
+ijELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExFTATBgNVBAoMDFpz
+Y2FsZXIgSW5jLjEVMBMGA1UECwwMWnNjYWxlciBJbmMuMTgwNgYDVQQDDC9ac2Nh
+bGVyIEludGVybWVkaWF0ZSBSb290IENBICh6c2Nsb3VkLm5ldCkgKHQpIDCCASIw
+DQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALDXlbKr9qAfEbAExr790mby3OMr
+Mj3vBWcPpXdsIkAsIHtbsqCaaUbHqRl1dh1LHIJ6wToMtx9z0GVavjHH+OWL/9ij
+L4D0JM0vFkKH0AFyBMop6TlMAp9RcUiId6JTManI3DkcMdJdsrANlurrrEkujESH
+KVgt9F27oukncr9LMaUlMtNhJMb7xSfqrQmAwkQTaTnMkvlaVUw9N+Ei8ARMHYj6
+8D6vWF5ZiudNSm8+t9lVo28pEEWHCkffS/KMVsUBAzLs2CkS7w+WNOgQ41OQoEzL
+wFJp7YET5N+Dy0f6Jl/QMD8M9AT1eBkxz2/9ugbC372DKySapcvQQ5eOje0CAwEA
+AaOBpjCBozAdBgNVHQ4EFgQU11TFluMs2mkX7JegxDyIkD+WV3AwHwYDVR0jBBgw
+FoAUEVNZkexwoCxJn2ffkRPRoXfjFq4wDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8B
+Af8EBAMCAf4wQAYDVR0fBDkwNzA1oDOgMYYvaHR0cDovL2dhdGV3YXkuenNjbG91
+ZC5uZXQvY3JsL3pzYy1rZWstLTQtMS5jcmwwDQYJKoZIhvcNAQELBQADggEBAGAj
+L6NU08PMiywZb3VzCatbshgMWDPsvs0TQ8WNse57woqaZHI9gjDyJE5s4HxAwFOl
+AMydLUhEtkQjWUc8rXrT/QEAbznNb/JvFpNC/yZioyFTqlWnzeHeI4Tu1z8zKxyq
+SBzrpE2SB/K0ks67GMP6Z1K0oldfYwzWHXuTlZEI+2BKmtctjKEWnLS0ufbGoBbR
+3gw46D5GJt1QtAbLoyIpfrdClQU1qw/GxO+f69E5sCpTw9uqPHkpxIHtQfKAjbCj
+bjMIqLI9S96T2dQc3BHFyU5jNu47J2qDZ7aD3hZKs2wh0SLXauitXjDdAYJg0aOc
+K84vgS3Kcg01SthqAM8=
+-----END CERTIFICATE-----
+ 2 s:C = US, ST = California, O = Zscaler Inc., OU = Zscaler Inc., CN = Zscaler Intermediate Root CA (zscloud.net), emailAddress = support@zscaler.com
+   i:C = US, ST = California, L = San Jose, O = Zscaler Inc., OU = Zscaler Inc., CN = Zscaler Root CA, emailAddress = support@zscaler.com
+   a:PKEY: rsaEncryption, 2048 (bit); sigalg: RSA-SHA256
+   v:NotBefore: Feb  2 16:38:37 2025 GMT; NotAfter: Jun 10 16:38:37 2052 GMT
+-----BEGIN CERTIFICATE-----
+MIIFLTCCBBWgAwIBAgIJANu+mC2Jt3uYMA0GCSqGSIb3DQEBCwUAMIGhMQswCQYD
+VQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTERMA8GA1UEBxMIU2FuIEpvc2Ux
+FTATBgNVBAoTDFpzY2FsZXIgSW5jLjEVMBMGA1UECxMMWnNjYWxlciBJbmMuMRgw
+FgYDVQQDEw9ac2NhbGVyIFJvb3QgQ0ExIjAgBgkqhkiG9w0BCQEWE3N1cHBvcnRA
+enNjYWxlci5jb20wIBcNMjUwMjAyMTYzODM3WhgPMjA1MjA2MTAxNjM4MzdaMIGp
+MQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEVMBMGA1UEChMMWnNj
+YWxlciBJbmMuMRUwEwYDVQQLEwxac2NhbGVyIEluYy4xMzAxBgNVBAMTKlpzY2Fs
+ZXIgSW50ZXJtZWRpYXRlIFJvb3QgQ0EgKHpzY2xvdWQubmV0KTEiMCAGCSqGSIb3
+DQEJARYTc3VwcG9ydEB6c2NhbGVyLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEP
+ADCCAQoCggEBAL1jJ79rdyq82MQxBd5v0193M0+JE3VZpizKmfseQ5FjuTj6ai4Q
+hw/G3vL3VXa3P24/MbfaDn5WPAMp2LmZhF+Mv7WmETbPy1wVi0U2WZKROe9MeQSf
+XiJi7mtLYluPPHEkOeki2gXM+AXDO+pdY/HVNxYGC3uc37xpPafHzSB1aV4GyTi2
+L7m4bKlNl3GY8WWKe1nJUwgZEd+Pa1HxneNvEz8cj7LvZysgXPqnT7MuKXcAWepb
+Gz5jQlPWM4U5Og0/hn8PEg/4gRwvjBKtUWDlHWNcynjTk6IJM0W2Qx9qUR5BDc/5
+cNJuh1trl8j/BLKIPDc9W9o/E7bXgwoFtH8CAwEAAaOCAVowggFWMB0GA1UdDgQW
+BBQRU1mR7HCgLEmfZ9+RE9Ghd+MWrjAPBgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB
+/wQEAwIBhjCB1gYDVR0jBIHOMIHLgBS5t91KzcMODIadXd/sHARpxU6Y36GBp6SB
+pDCBoTELMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExETAPBgNVBAcT
+CFNhbiBKb3NlMRUwEwYDVQQKEwxac2NhbGVyIEluYy4xFTATBgNVBAsTDFpzY2Fs
+ZXIgSW5jLjEYMBYGA1UEAxMPWnNjYWxlciBSb290IENBMSIwIAYJKoZIhvcNAQkB
+FhNzdXBwb3J0QHpzY2FsZXIuY29tggkA276YLYm3e5MwOwYDVR0fBDQwMjAwoC6g
+LIYqaHR0cDovL2dhdGV3YXkuenNjbG91ZC5uZXQvY3JsL3pzYy1pbnQuY3JsMA0G
+CSqGSIb3DQEBCwUAA4IBAQBqXT8aEXqta/oeuEIQy0/VpOTe2wdr7j6gmGrXhiV0
++C6Lf67A7mb2tXj/MDYX61jwSicZuD2oFMnNolLEvk6CGRW9yndMOq6xgeOemZAp
+W9ho0m29dBuL279gPKdHlS0fn7KbEKZlVuRdEkCu9viJJZwfSvoo9lzzo84zuRc1
+GxqENRrXdG9l5CwKzq7XHhtZaOROnbIld78IapsVsPY1tJIWXlE2xhnMXxlRabPD
+n8M28l9LhwqARo1kk5ZUlN20YGlxcZnV8gEJXEQxN71j6KSggvTWOJpTE2MQR9df
+IkTVZ5Ahls2K9YXrpl1LuQNkP/8vwn7AG0xkc0LpmjiJ
+-----END CERTIFICATE-----
+---
+Server certificate
+subject=CN = api.openai.com, O = Zscaler Inc., OU = Zscaler Inc.
+issuer=C = US, ST = California, O = Zscaler Inc., OU = Zscaler Inc., CN = "Zscaler Intermediate Root CA (zscloud.net) (t) "
+---
+No client certificate CA names sent
+Peer signing digest: SHA256
+Peer signature type: RSA-PSS
+Server Temp Key: ECDH, prime256v1, 256 bits
+---
+SSL handshake has read 4295 bytes and written 745 bytes
+Verification error: unable to get local issuer certificate
+---
+New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+Server public key is 2048 bit
+This TLS version forbids renegotiation.
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+Early data was not sent
+Verify return code: 20 (unable to get local issuer certificate)
+---

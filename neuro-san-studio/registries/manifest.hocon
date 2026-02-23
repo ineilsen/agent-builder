@@ -1,0 +1,127 @@
+# Copyright © 2025-2026 Cognizant Technology Solutions Corp, www.cognizant.com.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# END COPYRIGHT
+{
+    # Refer to this document for neuro-san specifications for the agent manifest.hocon file 
+    # that is used as configuration for neuro-san servers
+    # https://github.com/cognizant-ai-lab/neuro-san/blob/main/docs/manifest_hocon_reference.md
+
+    # For all the grouped registries such as basic, tools, industry, we include the respective manifest file.
+
+    # Basic examples
+    include "registries/basic/manifest.hocon",
+
+    # Tool integration examples
+    include "registries/tools/manifest.hocon",
+    
+    # Industry use cases
+    include "registries/industry/manifest.hocon",
+
+    # Experimental and research
+    include "registries/experimental/manifest.hocon",
+
+    # Currently we list each hocon file we want to serve as a key with a boolean value.
+    # Eventually we might have a dictionary value with server specifications for each.
+
+    "kwik_agents.hocon": false,
+    # Set the following agent network to true before running apps/cruse/interface_flask.py
+    "cruse_agent.hocon": false,
+    # Set the following agent network to true before running apps/conscious_assistant/interface_flask.py
+    "conscious_agent.hocon": false,
+    # Set the following agent network to true before running apps/log_analyzer/log_analyzer.py
+    "log_analysis_agents.hocon": false,
+    "six_thinking_hats.hocon": true,
+
+    #
+    # Agent network designer family of agents
+    #
+    "agent_network_designer.hocon": true,
+    "agent_network_editor.hocon": {
+        # This is a support network for agent_network_designer
+        # We want it served up, but not listed as a public agent network
+        "serve": true,
+        "public": false
+    },
+    "agent_network_instructions_editor.hocon": {
+        # This is a support network for agent_network_designer
+        # We want it served up, but not listed as a public agent network
+        "serve": true,
+        "public": false
+    },
+    "agent_network_query_generator.hocon": { 
+        # This is a support network for agent_network_designer
+        # We want it served up, but not listed as a public agent network
+        "serve": true,
+        "public": false
+    },
+
+    # This agent network performs the following actions:
+    # 1. Calls "agent_network_designer" as an external agent to generate a .hocon configuration file.
+    # 2. Uses the "agent_network_html_generator" tool (from the toolbox) to create an HTML visualization of the network.
+    # 3. Demonstrates how the generated network works by calling the coded tool "NsflowSelenium".
+    # 4. Sends an email with the .hocon and HTML files attached using the "gmail_with_attachment" tool (also from the toolbox).
+    #
+    # Requirements:
+    # - neuro-san>=0.5.38
+    # - Install Gmail support:
+    #     pip install -U langchain-google-community\[gmail\]
+    # - Set up Gmail API credentials:
+    #     Follow the instructions at
+    #     https://developers.google.com/workspace/gmail/api/quickstart/python#authorize_credentials_for_a_desktop_application
+    #     Then download the `credentials.json` file and place it at the top level of this repo.
+    # - Install Selenium and WebDriver Manager:
+    #     pip install selenium webdriver-manager
+    #
+    # Additional setup for running the "NsflowSelenium" coded tool:
+    # - Start the nsflow service in a separate terminal.
+    # - Use non-default ports for the neuro-san gRPC, HTTP, and nsflow servers.
+    #   The default ports are 30011 for gRPC, 8080 for HTTP, and 4173 for nsflow.
+    #   For example, you can run:
+    #     python -m run --server-grpc-port 30012 --server-http-port 8081 --nsflow-port 4174
+    "agent_network_architect.hocon": false,
+
+    "cruse_theme_agent.hocon": {
+        # This is a support network for Cruse Interface
+        # We want it served up, but not listed as a public agent network
+        "serve": true,
+        "public": false
+    },
+    "cruse_widget_agent.hocon": {
+        # This is a support network for Cruse Interface
+        # We want it served up, but not listed as a public agent network
+        "serve": true,
+        "public": false
+    }
+
+    "generated/travel_agency_network.hocon": true,
+
+    "generated/jml_process_workflow.hocon": true,
+
+    "generated/jml_process_nhs.hocon": true,
+
+    "generated/ardagh_supply_chain.hocon": true,
+
+    "generated/bat_marketing_operations.hocon": true,
+
+    "generated/vodafone_contact_center_ops.hocon": true,
+
+    "generated/omnichannel_contact_center.hocon": true,
+
+    "generated/omnichannelContactCenter.hocon": true,
+
+    "generated/gartner_research_operations.hocon": true,
+
+    "generated/cognizant_hr_operations.hocon": true,
+}
