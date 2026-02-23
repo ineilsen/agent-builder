@@ -1,0 +1,672 @@
+/* Neural Flow - Agent Builder Futuristic Design System */
+/* Enterprise-grade AI orchestration visual language */
+
+/* ============================================
+   CSS Custom Properties for Neural Theme
+   ============================================ */
+:root {
+    /* Neural Core Colors */
+    --neural-purple: #A855F7;
+    --neural-purple-glow: rgba(168, 85, 247, 0.6);
+    --neural-blue: #3B82F6;
+    --neural-blue-glow: rgba(59, 130, 246, 0.5);
+    --neural-cyan: #06B6D4;
+    --neural-cyan-glow: rgba(6, 182, 212, 0.5);
+    --neural-emerald: #10B981;
+    --neural-emerald-glow: rgba(16, 185, 129, 0.5);
+
+    /* Card Base */
+    --neural-card-bg: rgba(255, 255, 255, 0.95);
+    --neural-card-border: rgba(0, 0, 0, 0.08);
+    --neural-card-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.12);
+
+    /* Connection Colors */
+    --synapse-idle: rgba(139, 92, 246, 0.15);
+    --synapse-active: rgba(168, 85, 247, 0.8);
+    --plasma-start: #A855F7;
+    --plasma-mid: #818CF8;
+    --plasma-end: #06B6D4;
+}
+
+.dark {
+    --neural-card-bg: rgba(26, 29, 33, 0.95);
+    --neural-card-border: rgba(255, 255, 255, 0.08);
+    --neural-card-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.5);
+    --synapse-idle: rgba(139, 92, 246, 0.2);
+}
+
+/* ============================================
+   Neural Node Card Styles
+   ============================================ */
+
+/* Base Card Container */
+.neural-node {
+    position: absolute;
+    width: 240px;
+    border-radius: 20px;
+    background: var(--neural-card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--neural-card-border);
+    box-shadow: var(--neural-card-shadow);
+    /* Removed 'all' to prevent fighting with JS drag updates on transform */
+    transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+    overflow: visible;
+    z-index: 10;
+}
+
+.neural-node:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px -8px rgba(168, 85, 247, 0.2);
+}
+
+.neural-node.selected {
+    z-index: 20;
+    border-color: var(--neural-purple);
+    box-shadow:
+        0 0 0 2px var(--neural-purple-glow),
+        0 12px 40px -8px rgba(168, 85, 247, 0.3);
+}
+
+.neural-node.active {
+    z-index: 25;
+    animation: neural-pulse 2s ease-in-out infinite;
+}
+
+@keyframes neural-pulse {
+
+    0%,
+    100% {
+        box-shadow:
+            0 0 0 0 var(--neural-purple-glow),
+            0 8px 32px -8px rgba(168, 85, 247, 0.3);
+    }
+
+    50% {
+        box-shadow:
+            0 0 0 8px transparent,
+            0 0 40px 0 var(--neural-purple-glow),
+            0 12px 40px -4px rgba(168, 85, 247, 0.4);
+    }
+}
+
+/* Status Ring Animation */
+.neural-status-ring {
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border-radius: 24px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.neural-node.active .neural-status-ring {
+    opacity: 1;
+}
+
+.neural-status-ring::before,
+.neural-status-ring::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 2px solid transparent;
+}
+
+/* Frontman - Dual rotating rings */
+.neural-node.type-frontman .neural-status-ring::before {
+    border-top-color: var(--neural-purple);
+    border-right-color: transparent;
+    animation: ring-rotate-primary 3s linear infinite;
+}
+
+.neural-node.type-frontman .neural-status-ring::after {
+    border-bottom-color: var(--neural-cyan);
+    border-left-color: transparent;
+    animation: ring-rotate-secondary 3s linear infinite reverse;
+}
+
+/* Agent - Single pulse ring */
+.neural-node.type-agent .neural-status-ring::before {
+    border-color: var(--neural-blue);
+    animation: ring-pulse 2s ease-in-out infinite;
+}
+
+/* Tool - Static dashed ring */
+.neural-node.type-tool .neural-status-ring::before {
+    border: 2px dashed var(--neural-cyan);
+    opacity: 0.5;
+    animation: none;
+}
+
+/* External Network - Orbital dots */
+.neural-node.type-network .neural-status-ring {
+    background: conic-gradient(from 0deg,
+            transparent 0deg 80deg,
+            var(--neural-emerald) 80deg 100deg,
+            transparent 100deg 180deg,
+            var(--neural-emerald) 180deg 200deg,
+            transparent 200deg 280deg,
+            var(--neural-emerald) 280deg 300deg,
+            transparent 300deg 360deg);
+    animation: orbital-spin 4s linear infinite;
+    mask: radial-gradient(transparent 94%, black 95%);
+    -webkit-mask: radial-gradient(transparent 94%, black 95%);
+}
+
+@keyframes ring-rotate-primary {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes ring-rotate-secondary {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(-360deg);
+    }
+}
+
+@keyframes ring-pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.3;
+    }
+
+    50% {
+        transform: scale(1.02);
+        opacity: 0.8;
+    }
+}
+
+@keyframes orbital-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Icon Container with Glow */
+.neural-icon-container {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.neural-icon-container::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 16px;
+    background: inherit;
+    opacity: 0;
+    filter: blur(12px);
+    z-index: -1;
+    transition: opacity 0.3s ease;
+}
+
+.neural-node.active .neural-icon-container::after {
+    opacity: 0.6;
+}
+
+.neural-icon-container.purple {
+    background: linear-gradient(135deg, #A855F7 0%, #9333EA 100%);
+    box-shadow: 0 4px 16px -2px rgba(168, 85, 247, 0.4);
+}
+
+.neural-icon-container.blue {
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+    box-shadow: 0 4px 16px -2px rgba(59, 130, 246, 0.4);
+}
+
+.neural-icon-container.cyan {
+    background: linear-gradient(135deg, #06B6D4 0%, #0891B2 100%);
+    box-shadow: 0 4px 16px -2px rgba(6, 182, 212, 0.4);
+}
+
+.neural-icon-container.emerald {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    box-shadow: 0 4px 16px -2px rgba(16, 185, 129, 0.4);
+}
+
+/* Compact Info Pills */
+.neural-meta-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.neural-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 500;
+    background: rgba(0, 0, 0, 0.04);
+    color: #64748b;
+    transition: all 0.2s ease;
+}
+
+.dark .neural-pill {
+    background: rgba(255, 255, 255, 0.06);
+    color: #94a3b8;
+}
+
+.neural-pill.model {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(139, 92, 246, 0.1));
+    color: #7c3aed;
+}
+
+.dark .neural-pill.model {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(139, 92, 246, 0.2));
+    color: #a78bfa;
+}
+
+/* Expandable Details Panel */
+.neural-expand-panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 8px;
+    padding: 16px;
+    background: var(--neural-card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--neural-card-border);
+    border-radius: 16px;
+    box-shadow: 0 16px 48px -12px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.neural-node.expanded .neural-expand-panel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Tools Grid in Expanded Panel */
+.neural-tools-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.neural-tool-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    background: rgba(6, 182, 212, 0.08);
+    border: 1px solid rgba(6, 182, 212, 0.15);
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #0891b2;
+    transition: all 0.2s ease;
+}
+
+.dark .neural-tool-chip {
+    background: rgba(6, 182, 212, 0.12);
+    border-color: rgba(6, 182, 212, 0.2);
+    color: #22d3ee;
+}
+
+.neural-tool-chip:hover {
+    background: rgba(6, 182, 212, 0.15);
+    transform: translateX(2px);
+}
+
+/* MCP Chips */
+.neural-mcp-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.15);
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #059669;
+    transition: all 0.2s ease;
+}
+
+.dark .neural-mcp-chip {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}
+
+/* Connection Ports */
+.neural-port {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--neural-card-bg);
+    border: 2px solid #6b7280;
+    transition: all 0.3s ease;
+    z-index: 5;
+}
+
+.neural-port.top {
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.neural-port.bottom {
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, 50%);
+}
+
+.neural-node:hover .neural-port {
+    border-color: var(--neural-purple);
+    box-shadow: 0 0 8px var(--neural-purple-glow);
+}
+
+.neural-node.active .neural-port {
+    border-color: var(--neural-purple);
+    background: var(--neural-purple);
+    box-shadow: 0 0 12px var(--neural-purple-glow);
+    animation: port-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes port-pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 8px var(--neural-purple-glow);
+    }
+
+    50% {
+        box-shadow: 0 0 16px var(--neural-purple-glow), 0 0 24px var(--neural-purple-glow);
+    }
+}
+
+/* ============================================
+   Synaptic Connection Styles
+   ============================================ */
+
+/* Idle Connection */
+.synapse-path-idle {
+    fill: none;
+    stroke: var(--synapse-idle);
+    stroke-width: 2;
+    stroke-linecap: round;
+    transition: all 0.3s ease;
+}
+
+/* Active Plasma Stream */
+.synapse-path-active {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    filter: url(#plasma-glow);
+}
+
+/* Plasma Wave Animation */
+.plasma-wave {
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    opacity: 0.6;
+    animation: plasma-flow 1.5s linear infinite;
+}
+
+.plasma-wave:nth-child(2) {
+    animation-delay: -0.5s;
+    opacity: 0.4;
+}
+
+.plasma-wave:nth-child(3) {
+    animation-delay: -1s;
+    opacity: 0.2;
+}
+
+@keyframes plasma-flow {
+    from {
+        stroke-dashoffset: 50;
+    }
+
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* Data Packet Particles */
+.data-packet {
+    fill: white;
+    filter: drop-shadow(0 0 6px var(--neural-purple)) drop-shadow(0 0 12px var(--neural-purple));
+}
+
+.data-packet-trail {
+    fill: var(--neural-purple);
+    opacity: 0.5;
+}
+
+.data-packet-trail:nth-child(2) {
+    opacity: 0.3;
+}
+
+.data-packet-trail:nth-child(3) {
+    opacity: 0.15;
+}
+
+/* Phosphorescent Glow Effect */
+.phosphor-glow {
+    fill: none;
+    stroke: var(--neural-purple);
+    stroke-width: 8;
+    opacity: 0.15;
+    filter: blur(4px);
+}
+
+/* Connection End Points - Sparks */
+.synapse-spark {
+    fill: var(--neural-purple);
+    opacity: 0;
+    animation: spark-burst 0.8s ease-out infinite;
+}
+
+.synapse-spark:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.synapse-spark:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes spark-burst {
+    0% {
+        opacity: 1;
+        r: 2;
+        transform: translate(0, 0);
+    }
+
+    100% {
+        opacity: 0;
+        r: 0;
+        transform: translate(var(--spark-x, 10px), var(--spark-y, -10px));
+    }
+}
+
+/* Breathing Animation for Idle */
+.synapse-breathing {
+    animation: synapse-breathe 4s ease-in-out infinite;
+}
+
+@keyframes synapse-breathe {
+
+    0%,
+    100% {
+        opacity: 0.3;
+        stroke-width: 1.5;
+    }
+
+    50% {
+        opacity: 0.5;
+        stroke-width: 2;
+    }
+}
+
+/* Connection Gradient Definitions */
+.synapse-gradient-idle {
+    --start: rgba(139, 92, 246, 0.4);
+    --end: rgba(6, 182, 212, 0.4);
+}
+
+.synapse-gradient-active {
+    --start: #A855F7;
+    --mid: #818CF8;
+    --end: #06B6D4;
+}
+
+/* ============================================
+   View Toggle Button Styles
+   ============================================ */
+
+.view-toggle-container {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 2px;
+}
+
+.dark .view-toggle-container {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.view-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dark .view-toggle-btn {
+    color: #9ca3af;
+}
+
+.view-toggle-btn:hover {
+    color: #374151;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.dark .view-toggle-btn:hover {
+    color: #e5e7eb;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.view-toggle-btn.active {
+    color: white;
+    background: linear-gradient(135deg, #A855F7, #7C3AED);
+    box-shadow: 0 2px 8px -2px rgba(168, 85, 247, 0.4);
+}
+
+/* ============================================
+   SVG Filter Definitions (for connections)
+   ============================================ */
+
+/* These will be defined inline in the component,
+   but here for reference:
+   
+   <defs>
+     <filter id="plasma-glow" x="-50%" y="-50%" width="200%" height="200%">
+       <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+       <feMerge>
+         <feMergeNode in="blur" />
+         <feMergeNode in="SourceGraphic" />
+       </feMerge>
+     </filter>
+     
+     <linearGradient id="plasma-gradient" gradientUnits="userSpaceOnUse">
+       <stop offset="0%" stop-color="#A855F7" />
+       <stop offset="50%" stop-color="#818CF8" />
+       <stop offset="100%" stop-color="#06B6D4" />
+     </linearGradient>
+   </defs>
+*/
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+
+.neural-text-gradient {
+    background: linear-gradient(135deg, #A855F7, #3B82F6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.neural-transition-spring {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.neural-transition-smooth {
+    transition: all 0.3s ease;
+}
+
+/* Animation for expand icon rotation */
+.neural-expand-icon {
+    transition: transform 0.3s ease;
+}
+
+.neural-node.expanded .neural-expand-icon {
+    transform: rotate(180deg);
+}
+
+/* Truncate text with ellipsis */
+.neural-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Line clamp for descriptions */
+.neural-line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
