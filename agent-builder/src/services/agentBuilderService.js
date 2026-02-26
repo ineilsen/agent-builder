@@ -36,6 +36,23 @@ const agentBuilderService = {
     },
 
     /**
+     * Get list of MCP servers from mcp_info.hocon
+     */
+    getMcpServers: async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/mcp-servers`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch MCP servers');
+            }
+            const data = await response.json();
+            return data || [];
+        } catch (error) {
+            console.error('Error fetching MCP servers:', error);
+            return [];
+        }
+    },
+
+    /**
      * Get network details (re-using existing parser)
      */
     getNetworkGraph: async (networkName) => {
@@ -53,8 +70,11 @@ const agentBuilderService = {
 
     /**
      * Ask Gemini Copilot for architectural changes
+     * @param {string} networkPath - Path to existing network (or null for draft)
+     * @param {string} prompt - User's request
+     * @param {object} currentGraphData - Optional: Current graph state {nodes, edges, metadata} for draft networks
      */
-    generateCopilotPlan: async (networkPath, prompt) => {
+    generateCopilotPlan: async (networkPath, prompt, currentGraphData = null) => {
         try {
             // Fetch strictly allowed real platform tools and subnetworks
             const [networks, tools] = await Promise.all([
@@ -72,10 +92,26 @@ CRITICAL RULES:
 3. You MUST ONLY use tools from this exact list: ${JSON.stringify(availableTools)}
 4. You MUST ONLY use subnetworks from this exact list: ${JSON.stringify(availableSubnetworks)}`;
 
+            const requestBody = { prompt: enrichedPrompt };
+
+            // If currentGraphData is provided (draft network), generate HOCON from it
+            if (currentGraphData && currentGraphData.nodes && currentGraphData.edges) {
+                const { default: HoconGenerator } = await import('../utils/HoconGenerator.js');
+                const hoconContent = HoconGenerator.generateHocon(
+                    currentGraphData.nodes,
+                    currentGraphData.edges,
+                    currentGraphData.metadata || {}
+                );
+                requestBody.hoconContent = hoconContent;
+            } else {
+                // Otherwise use network path (existing network)
+                requestBody.networkPath = networkPath;
+            }
+
             const response = await fetch(`${API_BASE_URL}/copilot-generate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ networkPath, prompt: enrichedPrompt })
+                body: JSON.stringify(requestBody)
             });
             if (!response.ok) {
                 const errData = await response.json();
@@ -137,6 +173,38 @@ CRITICAL RULES:
             }
         } catch (error) {
             console.error('Error dispatching to nsflow:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Save network directly to registry (no download)
+     * @param {string} networkPath - Path relative to registries/ (e.g., "my_network" or "industry/my_network")
+     * @param {string} hoconContent - Complete HOCON content to save
+     * @param {boolean} overwrite - Whether to overwrite existing file
+     * @returns {Promise<{success: boolean, path: string, message: string}>}
+     */
+    saveToRegistry: async (networkPath, hoconContent, overwrite = false) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/save-to-registry`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ networkPath, hoconContent, overwrite })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (response.status === 409 && data.exists) {
+                    // File exists, need confirmation
+                    return { ...data, needsConfirmation: true };
+                }
+                throw new Error(data.message || data.error || 'Failed to save to registry');
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Error saving to registry:', error);
             throw error;
         }
     }

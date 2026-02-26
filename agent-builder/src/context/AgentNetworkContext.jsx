@@ -20,6 +20,7 @@ const NEURO_SAN_BASE_URL = '';
 export const AgentNetworkProvider = ({ children }) => {
     const [networks, setNetworks] = useState([]);
     const [tools, setTools] = useState([]);
+    const [mcpServers, setMcpServers] = useState([]);
     const [currentNetwork, setCurrentNetwork] = useState(null);
     const [selectedAgentId, setSelectedAgentId] = useState(null);
     const [graphData, setGraphData] = useState({ nodes: [], edges: [] });
@@ -132,10 +133,14 @@ export const AgentNetworkProvider = ({ children }) => {
                 loadNetwork(networksData[0]);
             }
 
-            // Load tools in the background (non-blocking)
+            // Load tools and MCP servers in the background (non-blocking)
             agentBuilderService.getTools()
                 .then(toolsData => setTools(toolsData || []))
                 .catch(err => console.warn('Failed to load tools:', err.message));
+
+            agentBuilderService.getMcpServers()
+                .then(mcpData => setMcpServers(mcpData || []))
+                .catch(err => console.warn('Failed to load MCP servers:', err.message));
 
         } catch (err) {
             console.error("Failed to load networks", err);
@@ -794,6 +799,7 @@ export const AgentNetworkProvider = ({ children }) => {
         <AgentNetworkContext.Provider value={{
             networks,
             tools,
+            mcpServers,
             currentNetwork,
             graphData,
             isLoading,

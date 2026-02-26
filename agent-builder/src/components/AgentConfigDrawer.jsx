@@ -1,14 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
     Save, X, Wrench, Search, Plus, Trash2, CheckCircle, Circle,
-    Cpu, MessageSquare, Terminal, Package, Info, Sliders, Activity, Database, HardDrive, Loader
+    Cpu, MessageSquare, Terminal, Package, Info, Sliders, Activity, Database, HardDrive, Loader, Download, Sparkles, Bot, Server, Code, Cloud, Shield
 } from 'lucide-react';
-import { availableTools, toolCategories } from '../data/toolsData';
-import { mcpData } from '../data/mcpData';
 import FuturisticPromptEditor from './FuturisticPromptEditor';
 import { saveAgentConfig } from '../services/agentApi';
+import { useAgentNetwork } from '../context/AgentNetworkContext';
 
 const AgentConfigDrawer = ({ agentId, agentConfig, onSave, onClose }) => {
+    // Get real tools and MCP servers from context
+    const { tools: contextTools, mcpServers: contextMcpServers } = useAgentNetwork();
     // Active tab management
     const [activeTab, setActiveTab] = useState('overview');
     const [isSaving, setIsSaving] = useState(false);
@@ -89,6 +90,33 @@ const AgentConfigDrawer = ({ agentId, agentConfig, onSave, onClose }) => {
     const [toolCategoryFilter, setToolCategoryFilter] = useState('All');
     const [mcpSearch, setMcpSearch] = useState('');
 
+    // Transform context tools to UI format and extract categories
+    const { availableTools, toolCategories } = useMemo(() => {
+        if (!contextTools || contextTools.length === 0) {
+            return { availableTools: [], toolCategories: ['All'] };
+        }
+
+        // Transform tools from context format to UI format
+        const tools = contextTools.map(tool => ({
+            id: tool.id,
+            name: tool.id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+            category: tool.id.includes('search') ? 'Search' :
+                      tool.id.includes('rag') ? 'Knowledge' :
+                      tool.id.includes('image') || tool.id.includes('video') ? 'Media' :
+                      tool.id.includes('code') ? 'Code' :
+                      tool.id.includes('mail') || tool.id.includes('slack') ? 'Communication' :
+                      tool.id.includes('agentforce') || tool.id.includes('agentspace') || tool.id.includes('now_agents') ? 'Agents' :
+                      tool.id.includes('mcp') ? 'MCP' : 'General',
+            icon: Bot, // Default icon
+            description: tool.description || 'No description available'
+        }));
+
+        // Extract unique categories
+        const categories = ['All', ...new Set(tools.map(t => t.category))].sort();
+
+        return { availableTools: tools, toolCategories: categories };
+    }, [contextTools]);
+
     // Filtered tools
     const filteredTools = useMemo(() => {
         let tools = availableTools;
@@ -105,16 +133,44 @@ const AgentConfigDrawer = ({ agentId, agentConfig, onSave, onClose }) => {
         }
 
         return tools;
-    }, [toolSearch, toolCategoryFilter]);
+    }, [availableTools, toolSearch, toolCategoryFilter]);
+
+    // Transform context MCP servers to UI format
+    const availableMcp = useMemo(() => {
+        if (!contextMcpServers || contextMcpServers.length === 0) {
+            return [];
+        }
+
+        // Map icon based on MCP server type
+        const getIconForMcp = (mcpId, mcpClass) => {
+            if (mcpId.includes('github') || mcpClass.includes('github')) return Code;
+            if (mcpId.includes('aws') || mcpId.includes('cloud')) return Cloud;
+            if (mcpId.includes('security') || mcpId.includes('gdpr')) return Shield;
+            if (mcpId.includes('postgres') || mcpId.includes('database')) return Database;
+            return Server; // Default icon
+        };
+
+        return contextMcpServers.map(mcp => ({
+            id: mcp.id,
+            name: mcp.name || mcp.id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+            description: mcp.description || 'No description available',
+            organization: mcp.class?.split('.').pop() || 'Neuro SAN',
+            icon: getIconForMcp(mcp.id, mcp.class || ''),
+            iconBg: 'bg-blue-500',
+            transport: mcp.transport || 'stdio',
+            capabilities: mcp.capabilities || [],
+            govApproved: false // Could be determined from metadata
+        }));
+    }, [contextMcpServers]);
 
     // Filtered MCP
     const filteredMcp = useMemo(() => {
-        if (!mcpSearch) return mcpData;
-        return mcpData.filter(mcp =>
+        if (!mcpSearch) return availableMcp;
+        return availableMcp.filter(mcp =>
             mcp.name.toLowerCase().includes(mcpSearch.toLowerCase()) ||
             mcp.description.toLowerCase().includes(mcpSearch.toLowerCase())
         );
-    }, [mcpSearch]);
+    }, [availableMcp, mcpSearch]);
 
     // Toggle tool selection
     const toggleTool = (toolId) => {
@@ -280,12 +336,52 @@ const AgentConfigDrawer = ({ agentId, agentConfig, onSave, onClose }) => {
                         </div>
                     </div>
                 </div>
-                <button
-                    onClick={onClose}
-                    className="text-gray-400 hover:text-gray-900 dark:text-gray-500 dark:hover:text-white transition-colors"
-                >
-                    <X size={20} />
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => {
+                            // Build agent-only HOCON
+                            const agentHocon = `{
+  "name": "${config.name}",
+  "function": {
+    "description": "${config.description || ''}",
+    "parameters": ${JSON.stringify(config.functionParams || {}, null, 2)},
+    "required": ${JSON.stringify(config.requiredParams || [])}
+  },
+  "instructions": """
+${config.instructions || ''}
+  """,
+  "tools": [${(config.selectedTools || []).map(t => `"${t}"`).join(', ')}],
+  "llm_config": {
+    "model_name": "${config.model || 'gpt-4o'}",
+    "temperature": ${config.temperature ?? 0.7},
+    "max_tokens": ${config.maxTokens || 2000}
+  }
+}`;
+                            // Download
+                            const filename = `${config.name}_agent.hocon`;
+                            const blob = new Blob([agentHocon], { type: 'text/plain;charset=utf-8' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            console.log(`✅ Exported ${filename}`);
+                        }}
+                        className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                        title="Export agent as HOCON"
+                    >
+                        <Download size={18} />
+                    </button>
+                    <button
+                        onClick={onClose}
+                        className="text-gray-400 hover:text-gray-900 dark:text-gray-500 dark:hover:text-white transition-colors"
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
             </div>
 
             {/* Tabs - Horizontal Scrollable */}
@@ -485,6 +581,19 @@ const AgentConfigDrawer = ({ agentId, agentConfig, onSave, onClose }) => {
                 {/* Tools Tab */}
                 {activeTab === 'tools' && (
                     <div className="space-y-5">
+                        {/* Header with tool count */}
+                        <div className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-500/10 dark:to-blue-500/10 rounded-xl p-4 border border-purple-200/50 dark:border-purple-500/20">
+                            <div className="flex items-center gap-2">
+                                <Sparkles className="w-4 h-4 text-purple-500" />
+                                <span className="text-xs font-bold text-gray-900 dark:text-white">
+                                    Real Neuro SAN Tools
+                                </span>
+                            </div>
+                            <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">
+                                {availableTools.length} tools available
+                            </span>
+                        </div>
+
                         {/* Search and Filter */}
                         <div className="space-y-3">
                             <div className="relative">
@@ -549,37 +658,49 @@ const AgentConfigDrawer = ({ agentId, agentConfig, onSave, onClose }) => {
 
                         {/* Available Tools */}
                         <div className="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
-                            {filteredTools.map(tool => {
-                                const Icon = tool.icon;
-                                const isSelected = config.selectedTools.includes(tool.id);
-                                return (
-                                    <button
-                                        key={tool.id}
-                                        onClick={() => toggleTool(tool.id)}
-                                        className={`w-full flex items-start gap-3 p-3 rounded-xl border transition-all text-left
-                                            ${isSelected
-                                                ? 'bg-purple-50 dark:bg-purple-500/10 border-purple-300 dark:border-purple-500/30'
-                                                : 'bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-white/10'
-                                            }`}
-                                    >
-                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isSelected ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-400'}`}>
-                                            <Icon className="w-4 h-4" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <h5 className="text-xs font-semibold text-gray-900 dark:text-white">{tool.name}</h5>
-                                                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-400">
-                                                    {tool.category}
-                                                </span>
+                            {filteredTools.length === 0 && availableTools.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <Loader className="w-8 h-8 animate-spin mx-auto text-purple-500 mb-3" />
+                                    <p className="text-xs text-gray-500">Loading tools from Neuro SAN...</p>
+                                </div>
+                            ) : filteredTools.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <Search className="w-8 h-8 mx-auto text-gray-400 mb-3" />
+                                    <p className="text-xs text-gray-500">No tools match your search</p>
+                                </div>
+                            ) : (
+                                filteredTools.map(tool => {
+                                    const Icon = tool.icon;
+                                    const isSelected = config.selectedTools.includes(tool.id);
+                                    return (
+                                        <button
+                                            key={tool.id}
+                                            onClick={() => toggleTool(tool.id)}
+                                            className={`w-full flex items-start gap-3 p-3 rounded-xl border transition-all text-left
+                                                ${isSelected
+                                                    ? 'bg-purple-50 dark:bg-purple-500/10 border-purple-300 dark:border-purple-500/30'
+                                                    : 'bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-white/10'
+                                                }`}
+                                        >
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isSelected ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-400'}`}>
+                                                <Icon className="w-4 h-4" />
                                             </div>
-                                            <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">{tool.description}</p>
-                                        </div>
-                                        {isSelected && (
-                                            <CheckCircle className="w-5 h-5 text-purple-500 shrink-0" />
-                                        )}
-                                    </button>
-                                );
-                            })}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <h5 className="text-xs font-semibold text-gray-900 dark:text-white">{tool.name}</h5>
+                                                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-400">
+                                                        {tool.category}
+                                                    </span>
+                                                </div>
+                                                <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5 line-clamp-2">{tool.description}</p>
+                                            </div>
+                                            {isSelected && (
+                                                <CheckCircle className="w-5 h-5 text-purple-500 shrink-0" />
+                                            )}
+                                        </button>
+                                    );
+                                })
+                            )}
                         </div>
                     </div>
                 )}
@@ -587,6 +708,19 @@ const AgentConfigDrawer = ({ agentId, agentConfig, onSave, onClose }) => {
                 {/* MCP Tab */}
                 {activeTab === 'mcp' && (
                     <div className="space-y-5">
+                        {/* Header with MCP count */}
+                        <div className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/10 dark:to-indigo-500/10 rounded-xl p-4 border border-blue-200/50 dark:border-blue-500/20">
+                            <div className="flex items-center gap-2">
+                                <Server className="w-4 h-4 text-blue-500" />
+                                <span className="text-xs font-bold text-gray-900 dark:text-white">
+                                    Real MCP Servers
+                                </span>
+                            </div>
+                            <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
+                                {availableMcp.length} servers available
+                            </span>
+                        </div>
+
                         {/* Search */}
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -638,42 +772,54 @@ const AgentConfigDrawer = ({ agentId, agentConfig, onSave, onClose }) => {
 
                         {/* Available MCP */}
                         <div className="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
-                            {filteredMcp.map(mcp => {
-                                const Icon = mcp.icon;
-                                const isSelected = config.selectedMcp.includes(mcp.id);
-                                return (
-                                    <button
-                                        key={mcp.id}
-                                        onClick={() => toggleMcp(mcp.id)}
-                                        className={`w-full flex items-start gap-3 p-4 rounded-xl border transition-all text-left
-                                            ${isSelected
-                                                ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-300 dark:border-blue-500/30 shadow-sm'
-                                                : 'bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-white/10'
-                                            }`}
-                                    >
-                                        <div className={`w-10 h-10 rounded-xl ${mcp.iconBg} flex items-center justify-center text-white shrink-0`}>
-                                            <Icon className="w-5 h-5" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <h5 className="text-xs font-bold text-gray-900 dark:text-white">{mcp.name}</h5>
-                                                {mcp.govApproved && (
-                                                    <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-bold">GOV</span>
-                                                )}
+                            {filteredMcp.length === 0 && availableMcp.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <Loader className="w-8 h-8 animate-spin mx-auto text-blue-500 mb-3" />
+                                    <p className="text-xs text-gray-500">Loading MCP servers from Neuro SAN...</p>
+                                </div>
+                            ) : filteredMcp.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <Search className="w-8 h-8 mx-auto text-gray-400 mb-3" />
+                                    <p className="text-xs text-gray-500">No MCP servers match your search</p>
+                                </div>
+                            ) : (
+                                filteredMcp.map(mcp => {
+                                    const Icon = mcp.icon;
+                                    const isSelected = config.selectedMcp.includes(mcp.id);
+                                    return (
+                                        <button
+                                            key={mcp.id}
+                                            onClick={() => toggleMcp(mcp.id)}
+                                            className={`w-full flex items-start gap-3 p-4 rounded-xl border transition-all text-left
+                                                ${isSelected
+                                                    ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-300 dark:border-blue-500/30 shadow-sm'
+                                                    : 'bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-white/10'
+                                                }`}
+                                        >
+                                            <div className={`w-10 h-10 rounded-xl ${mcp.iconBg} flex items-center justify-center text-white shrink-0`}>
+                                                <Icon className="w-5 h-5" />
                                             </div>
-                                            <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-2">{mcp.description}</p>
-                                            <div className="flex items-center gap-2 text-[9px] text-gray-500">
-                                                <span>{mcp.organization}</span>
-                                                <span>•</span>
-                                                <span>{mcp.rating}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h5 className="text-xs font-bold text-gray-900 dark:text-white">{mcp.name}</h5>
+                                                    {mcp.govApproved && (
+                                                        <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-bold">GOV</span>
+                                                    )}
+                                                </div>
+                                                <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">{mcp.description}</p>
+                                                <div className="flex items-center gap-2 text-[9px] text-gray-500">
+                                                    <span>{mcp.organization}</span>
+                                                    <span>•</span>
+                                                    <span>{mcp.transport}</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                        {isSelected && (
-                                            <CheckCircle className="w-5 h-5 text-blue-500 shrink-0" />
-                                        )}
-                                    </button>
-                                );
-                            })}
+                                            {isSelected && (
+                                                <CheckCircle className="w-5 h-5 text-blue-500 shrink-0" />
+                                            )}
+                                        </button>
+                                    );
+                                })
+                            )}
                         </div>
                     </div>
                 )}

@@ -3,7 +3,7 @@ import agentBuilderService from '../services/agentBuilderService';
 import StudioFlowCanvas from '../components/StudioFlowCanvas';
 import FuturisticPromptEditor from '../components/FuturisticPromptEditor';
 import { parseHoconToGraph } from '../utils/HoconGraphMapper';
-import { Network, Share2, Settings, MessageSquare, Play, Box, X, Save, ChevronRight, ChevronDown, Code, Plus, Bot, Wrench, Globe, Library, Sparkles, Move, Link, AlertCircle, Maximize2, Puzzle, TerminalSquare, Database, Moon, Sun } from 'lucide-react';
+import { Network, Share2, Settings, MessageSquare, Play, Box, X, Save, ChevronRight, ChevronDown, Code, Plus, Bot, Wrench, Globe, Library, Sparkles, Move, Link, AlertCircle, Maximize2, Puzzle, TerminalSquare, Database, Moon, Sun, Download } from 'lucide-react';
 import ComponentLibrary from '../components/ComponentLibrary';
 import DesignerCopilot from '../components/DesignerCopilot';
 import McpMarketplace from '../components/McpMarketplace';
@@ -21,6 +21,7 @@ const AgentBuilderV2Content = () => {
 
     const [selectedNetwork, setSelectedNetwork] = useState(null);
     const [graphData, setGraphData] = useState({ nodes: [], edges: [] });
+    const [networkHoconData, setNetworkHoconData] = useState(null); // Store raw HOCON for export
     // const [isLoading, setIsLoading] = useState(true); // Replaced by contextLoading
     const [isGraphLoading, setIsGraphLoading] = useState(false);
 
@@ -61,6 +62,12 @@ const AgentBuilderV2Content = () => {
         try { return localStorage.getItem('agent-builder-theme') || 'dark'; }
         catch { return 'dark'; }
     });
+
+    // Save to Registry State
+    const [isSaving, setIsSaving] = useState(false);
+    const [showSaveDialog, setShowSaveDialog] = useState(false);
+    const [saveDialogData, setSaveDialogData] = useState(null);
+    const [saveNotification, setSaveNotification] = useState({ show: false, message: '', type: 'success' });
 
     const toggleNetworkFolder = (folderName) => {
         setExpandedNetworkFolders(prev => {
@@ -166,6 +173,10 @@ const AgentBuilderV2Content = () => {
 
         try {
             const rawData = await agentBuilderService.getNetworkGraph(networkName);
+
+            // Store raw HOCON for export
+            setNetworkHoconData(rawData);
+
             // Transform raw HOCON to Graph Data
             const graph = parseHoconToGraph(rawData);
             setGraphData(graph);
@@ -195,6 +206,7 @@ const AgentBuilderV2Content = () => {
     const handleCreateNewNetwork = () => {
         const newNetworkId = `draft_${Date.now()}`;
         setSelectedNetwork('Draft Network');
+        setNetworkHoconData(null); // Clear stored HOCON data for new network
 
         // Create a default Orchestrator (frontman) node
         const defaultFrontmanId = `frontman_${Date.now().toString().slice(-4)}`;
@@ -246,6 +258,115 @@ const AgentBuilderV2Content = () => {
             setIsDrawerOpen(true);
         } else if (!newMode) {
             setIsDrawerOpen(false);
+        }
+    };
+
+    const handleExportNetwork = async () => {
+        if (!graphData?.nodes || !graphData?.edges || !selectedNetwork) return;
+
+        try {
+            // Dynamically import HoconGenerator
+            const { default: HoconGenerator } = await import('../utils/HoconGenerator');
+
+            // Generate HOCON from current graph state
+            const hoconContent = HoconGenerator.generateHocon(
+                graphData.nodes,
+                graphData.edges,
+                {
+                    description: networkHoconData?.metadata?.description || '',
+                    model: networkHoconData?.llm_config?.model_name || 'gpt-4o',
+                    temperature: networkHoconData?.llm_config?.temperature || 0.7,
+                    maxTokens: networkHoconData?.llm_config?.max_tokens || 2000,
+                    sample_queries: networkHoconData?.metadata?.sample_queries || []
+                }
+            );
+
+            // Download file
+            const timestamp = new Date().toISOString().split('T')[0];
+            const networkName = selectedNetwork.split('/').pop().replace(/\.hocon$/, '');
+            const filename = `${networkName}_export_${timestamp}.hocon`;
+
+            const blob = new Blob([hoconContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            console.log(`✅ Exported ${filename} (${graphData.nodes.length} agents, ${graphData.edges.length} connections)`);
+        } catch (error) {
+            console.error('Export failed:', error);
+            alert(`Export failed: ${error.message}`);
+        }
+    };
+
+    const handleSaveToRegistry = async (forceOverwrite = false) => {
+        if (!graphData?.nodes || !graphData?.edges || !selectedNetwork) return;
+
+        setIsSaving(true);
+        try {
+            // Generate HOCON content
+            const { default: HoconGenerator } = await import('../utils/HoconGenerator');
+            const hoconContent = HoconGenerator.generateHocon(
+                graphData.nodes,
+                graphData.edges,
+                {
+                    description: networkHoconData?.metadata?.description || '',
+                    model: networkHoconData?.llm_config?.model_name || 'gpt-4o',
+                    temperature: networkHoconData?.llm_config?.temperature || 0.7,
+                    maxTokens: networkHoconData?.llm_config?.max_tokens || 2000,
+                    sample_queries: networkHoconData?.metadata?.sample_queries || []
+                }
+            );
+
+            // Get network path (remove .hocon extension if present)
+            const networkPath = selectedNetwork.replace(/\.hocon$/, '');
+
+            // Attempt to save
+            const result = await agentBuilderService.saveToRegistry(
+                networkPath,
+                hoconContent,
+                forceOverwrite
+            );
+
+            if (result.needsConfirmation) {
+                // File exists, show confirmation dialog
+                setSaveDialogData({ networkPath, hoconContent });
+                setShowSaveDialog(true);
+            } else {
+                // Success
+                setSaveNotification({
+                    show: true,
+                    message: result.message || 'Network saved successfully!',
+                    type: 'success'
+                });
+                setTimeout(() => setSaveNotification({ show: false, message: '', type: 'success' }), 3000);
+                console.log(`✅ Saved to registry: ${result.path}`);
+
+                // Reload networks to show in sidebar
+                await loadNetworks();
+            }
+        } catch (error) {
+            console.error('Save to registry failed:', error);
+            setSaveNotification({
+                show: true,
+                message: error.message || 'Failed to save to registry',
+                type: 'error'
+            });
+            setTimeout(() => setSaveNotification({ show: false, message: '', type: 'error' }), 5000);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleConfirmOverwrite = async () => {
+        setShowSaveDialog(false);
+        if (saveDialogData) {
+            await handleSaveToRegistry(true); // Retry with overwrite=true
+            setSaveDialogData(null);
         }
     };
 
@@ -350,6 +471,43 @@ const AgentBuilderV2Content = () => {
         setIsDrawerOpen(true);
     };
 
+    // Handle manual connection creation (Shift+Click)
+    const handleConnect = (sourceId, targetId) => {
+        console.log('[AgentBuilderV2] handleConnect called:', { sourceId, targetId });
+
+        // Verify nodes exist
+        const sourceNode = graphData.nodes.find(n => n.id === sourceId);
+        const targetNode = graphData.nodes.find(n => n.id === targetId);
+
+        if (!sourceNode || !targetNode) {
+            console.error('[AgentBuilderV2] Source or target node not found');
+            return;
+        }
+
+        // Check for duplicate (should already be validated in canvas, but double-check)
+        const isDuplicate = graphData.edges.some(
+            e => (e.source === sourceId && e.target === targetId) ||
+                 (e.source === targetId && e.target === sourceId)
+        );
+
+        if (isDuplicate) {
+            console.warn('[AgentBuilderV2] Connection already exists');
+            return;
+        }
+
+        const newEdge = {
+            source: sourceId,
+            target: targetId
+        };
+
+        console.log('[AgentBuilderV2] ✅ Adding new connection:', newEdge);
+
+        setGraphData(prev => ({
+            ...prev,
+            edges: [...prev.edges, newEdge]
+        }));
+    };
+
     const handleDragOver = (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
@@ -400,6 +558,52 @@ const AgentBuilderV2Content = () => {
             // setIsDrawerOpen(true);
         } catch (err) {
             console.error('Drop error:', err);
+        }
+    };
+
+    // Apply copilot-generated HOCON directly to canvas (for draft networks)
+    const handleApplyCopilotHocon = async (hoconContent) => {
+        try {
+            // HOCON string needs to be parsed by backend
+            // Send to backend parser endpoint
+            const response = await fetch('/api/local/parse-hocon', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ hoconContent })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to parse HOCON content');
+            }
+
+            const rawData = await response.json();
+
+            // Store raw HOCON for export
+            setNetworkHoconData(rawData);
+
+            // Transform to graph data
+            const graph = parseHoconToGraph(rawData);
+            setGraphData(graph);
+
+            // Build agent configs
+            const configs = {};
+            if (graph.nodes) {
+                graph.nodes.forEach(node => {
+                    configs[node.id] = {
+                        label: node.data?.label || node.id,
+                        instructions: node.data?.instructions || '',
+                        model: node.data?.llmModel || 'gpt-4o',
+                        tools: node.data?.dropdownTools || [],
+                        type: node.type
+                    };
+                });
+            }
+            setAgentConfig(configs);
+
+            console.log('✅ Canvas updated from copilot HOCON');
+        } catch (error) {
+            console.error('Failed to apply copilot HOCON:', error);
+            alert(`Failed to update canvas: ${error.message}`);
         }
     };
 
@@ -615,7 +819,23 @@ const AgentBuilderV2Content = () => {
                 <McpMarketplace isOpen={isMcpOpen} onToggle={() => toggleSidebar('mcp')} />
 
                 {/* DESIGNER COPILOT SIDEBAR */}
-                <DesignerCopilot isOpen={isCopilotOpen} onGenerateGraph={handleAutoGenerateGraph} networkPath={selectedNetwork} />
+                <DesignerCopilot
+                    isOpen={isCopilotOpen}
+                    onGenerateGraph={handleAutoGenerateGraph}
+                    onApplyHocon={handleApplyCopilotHocon}
+                    networkPath={selectedNetwork}
+                    currentGraphData={{
+                        nodes: graphData.nodes,
+                        edges: graphData.edges,
+                        metadata: {
+                            description: networkHoconData?.metadata?.description || '',
+                            model: networkHoconData?.llm_config?.model_name || 'gpt-4o',
+                            temperature: networkHoconData?.llm_config?.temperature || 0.7,
+                            maxTokens: networkHoconData?.llm_config?.max_tokens || 2000,
+                            sample_queries: networkHoconData?.metadata?.sample_queries || []
+                        }
+                    }}
+                />
 
                 {/* MAIN CANVAS AREA */}
                 <div
@@ -660,6 +880,23 @@ const AgentBuilderV2Content = () => {
                                     >
                                         <Settings size={14} /> Configure
                                     </button>
+
+                                    <button
+                                        onClick={handleExportNetwork}
+                                        className="px-4 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 transition-all duration-200 border bg-blue-600 dark:bg-blue-600 text-white border-blue-700 hover:bg-blue-700 dark:hover:bg-blue-500 shadow-sm"
+                                        title="Export current network as HOCON file"
+                                    >
+                                        <Download size={14} /> Export
+                                    </button>
+
+                                    <button
+                                        onClick={() => handleSaveToRegistry(false)}
+                                        disabled={isSaving}
+                                        className="px-4 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 transition-all duration-200 border bg-green-600 dark:bg-green-600 text-white border-green-700 hover:bg-green-700 dark:hover:bg-green-500 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title="Save directly to registries folder"
+                                    >
+                                        <Save size={14} /> {isSaving ? 'Saving...' : 'Save to Registry'}
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -683,6 +920,7 @@ const AgentBuilderV2Content = () => {
                                     selectedNodeId={selectedAgentId}
                                     agentConfigs={agentConfig}
                                     onAddNode={(parentId, type) => handleAddChild(parentId, type)} // Pass add node handler
+                                    onConnect={handleConnect} // Handle manual Shift+Click connections
                                     isArrangeMode={isArrangeMode}
                                     activeAgents={activeAgents}
                                     activeConnections={activeConnections}
@@ -750,6 +988,73 @@ const AgentBuilderV2Content = () => {
 
             {/* SETTINGS MODAL */}
             <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+
+            {/* SAVE CONFIRMATION DIALOG */}
+            {showSaveDialog && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-white dark:bg-[#1a1d21] rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800 p-6 max-w-md w-full mx-4">
+                        <div className="flex items-start gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+                                <AlertCircle className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+                                    Overwrite Existing Network?
+                                </h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    The network "<span className="font-mono text-blue-600 dark:text-blue-400">{selectedNetwork}</span>" already exists in the registry.
+                                    Do you want to replace it with the current version?
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={() => {
+                                    setShowSaveDialog(false);
+                                    setSaveDialogData(null);
+                                }}
+                                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleConfirmOverwrite}
+                                className="px-4 py-2 rounded-lg text-sm font-bold bg-amber-600 hover:bg-amber-700 text-white transition-colors shadow-sm"
+                            >
+                                Overwrite
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* SAVE NOTIFICATION */}
+            {saveNotification.show && (
+                <div className="fixed top-6 right-6 z-50 animate-in slide-in-from-top-2 fade-in duration-200">
+                    <div className={`rounded-lg shadow-lg border px-4 py-3 flex items-center gap-3 min-w-[300px] ${
+                        saveNotification.type === 'success'
+                            ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800'
+                            : 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800'
+                    }`}>
+                        {saveNotification.type === 'success' ? (
+                            <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-800/50 flex items-center justify-center shrink-0">
+                                <Save className="w-5 h-5 text-green-600 dark:text-green-400" />
+                            </div>
+                        ) : (
+                            <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-800/50 flex items-center justify-center shrink-0">
+                                <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                            </div>
+                        )}
+                        <p className={`text-sm font-medium ${
+                            saveNotification.type === 'success'
+                                ? 'text-green-900 dark:text-green-100'
+                                : 'text-red-900 dark:text-red-100'
+                        }`}>
+                            {saveNotification.message}
+                        </p>
+                    </div>
+                </div>
+            )}
 
         </div>
     );

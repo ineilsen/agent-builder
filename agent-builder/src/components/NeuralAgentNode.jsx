@@ -26,7 +26,8 @@ const NeuralAgentNode = ({
     agentTools = [],
     agentMCPs = [],
     onAddChild,
-    isArrangeMode = false
+    isArrangeMode = false,
+    isShiftPressed = false
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const { type, data } = node;
@@ -100,10 +101,11 @@ const NeuralAgentNode = ({
                 transform: `translate(${node.position ? node.position.x : node.x}px, ${node.position ? node.position.y : node.y}px)`,
                 willChange: 'transform',
                 transition: 'none', // Ensure no transition on the wrapper during drag
-                cursor: isArrangeMode ? 'grab' : 'pointer'
+                cursor: isShiftPressed ? 'crosshair' : (isArrangeMode ? 'grab' : 'pointer')
             }}
             onMouseDown={(e) => {
-                if (isArrangeMode) {
+                // Always call onMouseDown for arrange mode OR shift+click connection mode
+                if (isArrangeMode || isShiftPressed) {
                     e.stopPropagation();
                     e.preventDefault(); // Prevent native HTML dragging or text selection
                     onMouseDown(e, node);

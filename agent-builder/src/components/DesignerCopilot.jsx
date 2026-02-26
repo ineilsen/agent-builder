@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Bot, Sparkles, CheckCircle2, Loader2, GitBranch, XCircle, RefreshCw, Maximize2, X, ChevronDown, ChevronRight, Zap, Network, Wrench, Plus, Eye, MessageSquare, Terminal } from 'lucide-react';
+import { Send, Bot, Sparkles, CheckCircle2, Loader2, GitBranch, XCircle, RefreshCw, Maximize2, X, ChevronDown, ChevronRight, Zap, Network, Wrench, Plus, Eye, MessageSquare, Terminal, Download } from 'lucide-react';
 import agentBuilderService from '../services/agentBuilderService';
 import StudioChatPanel from './StudioChatPanel';
 import { useAgentNetwork } from '../context/AgentNetworkContext';
@@ -241,14 +241,42 @@ const PlanModal = ({ plan, onClose, onApprove, onCancel, isApproving }) => {
                     >
                         <XCircle size={14} /> Cancel Plan
                     </button>
-                    <button
-                        onClick={onApprove}
-                        disabled={isApproving}
-                        className="flex items-center gap-2 px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-blue-900/40 disabled:opacity-50"
-                    >
-                        {isApproving ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
-                        {isApproving ? 'Applying...' : 'Approve & Apply'}
-                    </button>
+                    <div className="flex gap-3">
+                        {/* Download HOCON Button */}
+                        {plan.hocon && (
+                            <button
+                                onClick={() => {
+                                    const filename = plan.title
+                                        .toLowerCase()
+                                        .replace(/\s+/g, '_')
+                                        .replace(/[^a-z0-9_]/g, '') + '.hocon';
+                                    const blob = new Blob([plan.hocon], { type: 'text/plain;charset=utf-8' });
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = filename;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    URL.revokeObjectURL(url);
+                                }}
+                                disabled={isApproving}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-600 dark:bg-gray-700 text-white hover:bg-gray-700 dark:hover:bg-gray-600 text-sm font-medium transition-colors disabled:opacity-50"
+                                title="Download HOCON file to your local machine"
+                            >
+                                <Download size={14} />
+                                Download HOCON
+                            </button>
+                        )}
+                        <button
+                            onClick={onApprove}
+                            disabled={isApproving}
+                            className="flex items-center gap-2 px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-blue-900/40 disabled:opacity-50"
+                        >
+                            {isApproving ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
+                            {isApproving ? 'Applying...' : 'Approve & Apply'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -333,7 +361,7 @@ const PlanCard = ({ plan, onExpand, onApprove, onCancel, isActive, isApproving }
 };
 
 // ---------- Main Copilot Component ----------
-const DesignerCopilot = ({ isOpen, onGenerateGraph, networkPath }) => {
+const DesignerCopilot = ({ isOpen, onGenerateGraph, onApplyHocon, networkPath, currentGraphData }) => {
     // Top-Level Tabs
     const [activeTab, setActiveTab] = useState('architect'); // 'architect' | 'chat'
     // Architect Engine Switch
@@ -396,7 +424,7 @@ const DesignerCopilot = ({ isOpen, onGenerateGraph, networkPath }) => {
                 }
             } else {
                 // Gemini Direct Mode (Mermaid preview flow)
-                const result = await agentBuilderService.generateCopilotPlan(networkPath, userText);
+                const result = await agentBuilderService.generateCopilotPlan(networkPath, userText, currentGraphData);
 
                 if (result?.plan) {
                     setCurrentPlan(result.plan);
@@ -428,22 +456,33 @@ const DesignerCopilot = ({ isOpen, onGenerateGraph, networkPath }) => {
         setPlanState('approved');
         setMessages(prev => [...prev,
         { role: 'user', content: 'Approve & Apply plan.' },
-        { role: 'assistant', content: '⚡ Applying changes to disk...' }
+        { role: 'assistant', content: '⚡ Applying changes to canvas...' }
         ]);
 
         try {
-            const saveResponse = await fetch('/api/local/copilot-save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ networkPath, hocon: currentPlan.hocon })
-            });
-            if (!saveResponse.ok) throw new Error('Failed to save HOCON to disk.');
+            // Apply HOCON directly to canvas (updates graph state without file save)
+            if (onApplyHocon) {
+                onApplyHocon(currentPlan.hocon);
+                setNetworkUpdated(true);
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: `✅ **${currentPlan.title}** applied! Your canvas has been updated.`
+                }]);
+            } else {
+                // Fallback: save to disk for existing networks
+                const saveResponse = await fetch('/api/local/copilot-save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ networkPath, hocon: currentPlan.hocon })
+                });
+                if (!saveResponse.ok) throw new Error('Failed to save HOCON to disk.');
 
-            setNetworkUpdated(true);
-            setMessages(prev => [...prev, {
-                role: 'assistant',
-                content: `✅ **${currentPlan.title}** applied! Click Refresh Canvas to see your updated network.`
-            }]);
+                setNetworkUpdated(true);
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: `✅ **${currentPlan.title}** applied! Click Refresh Canvas to see your updated network.`
+                }]);
+            }
         } catch (error) {
             setMessages(prev => [...prev, { role: 'assistant', content: `Failed to apply: ${error.message}` }]);
         } finally {

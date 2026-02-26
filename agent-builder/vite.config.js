@@ -258,15 +258,31 @@ export default defineConfig({
                         req.on('data', chunk => { body += chunk.toString(); });
                         req.on('end', async () => {
                             try {
-                                const { networkPath, prompt } = JSON.parse(body);
-                                if (!networkPath || !prompt) {
-                                    res.statusCode = 400; res.end(JSON.stringify({ error: 'Missing networkPath or prompt' })); return;
+                                const { networkPath, prompt, hoconContent } = JSON.parse(body);
+                                if (!prompt) {
+                                    res.statusCode = 400; res.end(JSON.stringify({ error: 'Missing prompt' })); return;
                                 }
-                                const safePath = networkPath.replace(/\.\./g, '');
-                                const fullPath = path.join(REGISTRY_ROOT, `${safePath}.hocon`);
 
-                                if (!fs.existsSync(fullPath)) {
-                                    res.statusCode = 404; res.end(JSON.stringify({ error: 'HOCON file not found' })); return;
+                                let fullPath = null;
+                                let tempFilePath = null;
+
+                                // If hoconContent is provided (draft network), write to temp file
+                                if (hoconContent) {
+                                    const { writeFileSync } = await import('fs');
+                                    const tmpdir = await import('os').then(m => m.tmpdir());
+                                    tempFilePath = path.join(tmpdir, `draft_network_${Date.now()}.hocon`);
+                                    writeFileSync(tempFilePath, hoconContent, 'utf-8');
+                                    fullPath = tempFilePath;
+                                } else if (networkPath) {
+                                    // Otherwise use the provided network path (existing network)
+                                    const safePath = networkPath.replace(/\.\./g, '');
+                                    fullPath = path.join(REGISTRY_ROOT, `${safePath}.hocon`);
+
+                                    if (!fs.existsSync(fullPath)) {
+                                        res.statusCode = 404; res.end(JSON.stringify({ error: 'HOCON file not found' })); return;
+                                    }
+                                } else {
+                                    res.statusCode = 400; res.end(JSON.stringify({ error: 'Must provide either networkPath or hoconContent' })); return;
                                 }
 
                                 const { spawn } = await import('child_process');
@@ -279,6 +295,16 @@ export default defineConfig({
                                 pythonProcess.stderr.on('data', d => stderrData += d.toString());
 
                                 pythonProcess.on('close', code => {
+                                    // Clean up temp file if created
+                                    if (tempFilePath) {
+                                        try {
+                                            const { unlinkSync } = require('fs');
+                                            unlinkSync(tempFilePath);
+                                        } catch (e) {
+                                            console.warn('Failed to delete temp file:', e);
+                                        }
+                                    }
+
                                     if (code === 0) {
                                         res.setHeader('Content-Type', 'application/json');
                                         res.end(stdoutData);
@@ -289,7 +315,8 @@ export default defineConfig({
                                     }
                                 });
                             } catch (e) {
-                                res.statusCode = 500; res.end(JSON.stringify({ error: 'Invalid JSON body' }));
+                                console.error('Copilot endpoint error:', e);
+                                res.statusCode = 500; res.end(JSON.stringify({ error: 'Invalid JSON body or processing error' }));
                             }
                         });
                         return;
@@ -312,6 +339,120 @@ export default defineConfig({
                                 res.end(JSON.stringify({ success: true }));
                             } catch (e) {
                                 res.statusCode = 500; res.end(JSON.stringify({ error: 'Failed to write HOCON', message: e.message }));
+                            }
+                        });
+                        return;
+                    }
+
+                    // [NEW] Parse HOCON Content Endpoint
+                    if (url.pathname === '/parse-hocon' && req.method === 'POST') {
+                        let body = '';
+                        req.on('data', chunk => { body += chunk.toString(); });
+                        req.on('end', async () => {
+                            try {
+                                const { hoconContent } = JSON.parse(body);
+                                if (!hoconContent) {
+                                    res.statusCode = 400;
+                                    res.end(JSON.stringify({ error: 'Missing hoconContent' }));
+                                    return;
+                                }
+
+                                // Write HOCON to temp file
+                                const { writeFileSync, unlinkSync } = await import('fs');
+                                const tmpdir = await import('os').then(m => m.tmpdir());
+                                const tempPath = path.join(tmpdir, `parse_hocon_${Date.now()}.hocon`);
+                                writeFileSync(tempPath, hoconContent, 'utf-8');
+
+                                // Parse using Python script
+                                const { spawn } = await import('child_process');
+                                const pythonScript = path.resolve(__dirname, 'pyhocon_parser_service.py');
+                                const pythonProcess = spawn(PYTHON_EXECUTABLE, [pythonScript, tempPath, REGISTRY_ROOT]);
+
+                                let stdoutData = '';
+                                let stderrData = '';
+                                pythonProcess.stdout.on('data', d => stdoutData += d.toString());
+                                pythonProcess.stderr.on('data', d => stderrData += d.toString());
+
+                                pythonProcess.on('close', code => {
+                                    // Clean up temp file
+                                    try {
+                                        unlinkSync(tempPath);
+                                    } catch (e) {
+                                        console.warn('Failed to delete temp HOCON file:', e);
+                                    }
+
+                                    if (code === 0) {
+                                        res.setHeader('Content-Type', 'application/json');
+                                        res.end(stdoutData);
+                                    } else {
+                                        console.error('HOCON parser failed:', stderrData);
+                                        res.statusCode = 500;
+                                        res.end(JSON.stringify({ error: 'Failed to parse HOCON', details: stderrData }));
+                                    }
+                                });
+                            } catch (e) {
+                                console.error('Parse HOCON endpoint error:', e);
+                                res.statusCode = 500;
+                                res.end(JSON.stringify({ error: 'Invalid request', message: e.message }));
+                            }
+                        });
+                        return;
+                    }
+
+                    // [NEW] Save to Registry Endpoint
+                    if (url.pathname === '/save-to-registry' && req.method === 'POST') {
+                        let body = '';
+                        req.on('data', chunk => { body += chunk.toString(); });
+                        req.on('end', async () => {
+                            try {
+                                const { networkPath, hoconContent, overwrite = false } = JSON.parse(body);
+
+                                if (!networkPath || !hoconContent) {
+                                    res.statusCode = 400;
+                                    res.end(JSON.stringify({ error: 'Missing networkPath or hoconContent' }));
+                                    return;
+                                }
+
+                                // Sanitize path to prevent directory traversal
+                                const safePath = networkPath.replace(/\.\./g, '').replace(/^\//, '');
+                                const fullPath = path.join(REGISTRY_ROOT, `${safePath}.hocon`);
+
+                                // Check if file exists
+                                const fileExists = fs.existsSync(fullPath);
+
+                                if (fileExists && !overwrite) {
+                                    res.statusCode = 409; // Conflict
+                                    res.end(JSON.stringify({
+                                        error: 'File already exists',
+                                        message: 'Network file already exists. Set overwrite=true to replace it.',
+                                        exists: true
+                                    }));
+                                    return;
+                                }
+
+                                // Ensure directory exists
+                                const dirPath = path.dirname(fullPath);
+                                if (!fs.existsSync(dirPath)) {
+                                    fs.mkdirSync(dirPath, { recursive: true });
+                                }
+
+                                // Write file
+                                fs.writeFileSync(fullPath, hoconContent, 'utf-8');
+
+                                res.setHeader('Content-Type', 'application/json');
+                                res.end(JSON.stringify({
+                                    success: true,
+                                    path: fullPath,
+                                    message: fileExists ? 'Network updated successfully' : 'Network saved successfully'
+                                }));
+
+                            } catch (e) {
+                                console.error('Save to registry error:', e);
+                                res.statusCode = 500;
+                                res.end(JSON.stringify({
+                                    error: 'Failed to save to registry',
+                                    message: e.message
+                                }));
                             }
                         });
                         return;

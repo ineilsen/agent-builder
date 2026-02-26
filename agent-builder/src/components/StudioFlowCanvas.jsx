@@ -10,7 +10,7 @@ import NeuralAgentNode from './NeuralAgentNode';
 import SynapticConnection from './SynapticConnection';
 
 // Enhanced Node Component
-const Node = ({ node, onMouseDown, isSelected, onClick, onMenuClick, onContextMenu, agentConfig, agentTools = [], agentMCPs = [], isActive = false, onAddChild, isArrangeMode }) => {
+const Node = ({ node, onMouseDown, isSelected, onClick, onMenuClick, onContextMenu, agentConfig, agentTools = [], agentMCPs = [], isActive = false, onAddChild, isArrangeMode, isShiftPressed = false }) => {
   const { type, data } = node;
 
   // Icon and Theme configurations
@@ -121,10 +121,11 @@ const Node = ({ node, onMouseDown, isSelected, onClick, onMenuClick, onContextMe
         transform: `translate(${node.position ? node.position.x : node.x}px, ${node.position ? node.position.y : node.y}px) ${isSelected || isActive ? 'scale(1.05)' : ''}`,
         willChange: 'transform',
         transition: 'border-color 300ms, box-shadow 300ms', // No transform transition during active drag tracking
-        cursor: isArrangeMode ? 'grab' : 'pointer'
+        cursor: isShiftPressed ? 'crosshair' : (isArrangeMode ? 'grab' : 'pointer')
       }}
       onMouseDown={(e) => {
-        if (isArrangeMode) {
+        // Always call onMouseDown for arrange mode OR shift+click connection mode
+        if (isArrangeMode || isShiftPressed) {
           e.stopPropagation();
           e.preventDefault(); // Prevent native HTML dragging or text selection
           onMouseDown(e, node);
@@ -362,6 +363,7 @@ const FlowCanvas = ({
   activeAgents = new Set(),
   activeConnections = [],
   onAddNode, // Prop from parent
+  onConnect, // NEW: Callback when user creates a connection
   isArrangeMode = false
 }) => {
   const [nodes, setNodes] = useState([]);
@@ -383,6 +385,61 @@ const FlowCanvas = ({
     parentId: null,
     position: { x: 0, y: 0 }
   });
+
+  // Connection Mode State (Shift+Click edge creation)
+  const [connectionMode, setConnectionMode] = useState({
+    isConnecting: false,
+    sourceNodeId: null,
+    mousePos: { x: 0, y: 0 }
+  });
+  const [isShiftPressed, setIsShiftPressed] = useState(false);
+
+  // Connection Validation Logic
+  const isValidConnection = useCallback((sourceId, targetId) => {
+    // Rule 1: No self-loops
+    if (sourceId === targetId) {
+      console.log('[Connection] ❌ Self-loop not allowed');
+      return false;
+    }
+
+    // Rule 2: Check for duplicate connections
+    const isDuplicate = connections.some(
+      c => (c.source === sourceId && c.target === targetId) ||
+           (c.source === targetId && c.target === sourceId)
+    );
+    if (isDuplicate) {
+      console.log('[Connection] ❌ Duplicate connection already exists');
+      return false;
+    }
+
+    // Rule 3: Check node types
+    const sourceNode = nodes.find(n => n.id === sourceId);
+    const targetNode = nodes.find(n => n.id === targetId);
+
+    if (!sourceNode || !targetNode) {
+      console.log('[Connection] ❌ Source or target node not found');
+      return false;
+    }
+
+    const sourceType = sourceNode.type;
+    const targetType = targetNode.type;
+
+    // Rule 4: Only agents/frontman can be sources
+    if (sourceType !== 'agent' && sourceType !== 'frontman') {
+      console.log(`[Connection] ❌ Invalid source type: ${sourceType}. Only agent/frontman can initiate connections.`);
+      return false;
+    }
+
+    // Rule 5: Target can be agent, frontman, tool, native-tool, or sub-network
+    const validTargetTypes = ['agent', 'frontman', 'tool', 'native-tool', 'sub-network'];
+    if (!validTargetTypes.includes(targetType)) {
+      console.log(`[Connection] ❌ Invalid target type: ${targetType}`);
+      return false;
+    }
+
+    console.log(`[Connection] ✅ Valid connection: ${sourceType} → ${targetType}`);
+    return true;
+  }, [connections, nodes]);
 
   // Handler to open the Add Menu
   const handleAddChildClick = (parentId, event) => {
@@ -473,6 +530,18 @@ const FlowCanvas = ({
 
   const handleBackgroundClick = (e) => {
     if (dragRef.current.wasDragging) return;
+
+    // Cancel connection mode if active
+    if (connectionMode.isConnecting) {
+      console.log('[Connection] ❌ Cancelled by background click');
+      setConnectionMode({
+        isConnecting: false,
+        sourceNodeId: null,
+        mousePos: { x: 0, y: 0 }
+      });
+      return;
+    }
+
     if (onNodeClick) onNodeClick(e, null); // Deselect
     setAddMenu(prev => ({ ...prev, isOpen: false })); // Close add menu
     setContextMenu(prev => ({ ...prev, isOpen: false })); // Close context menu
@@ -511,6 +580,47 @@ const FlowCanvas = ({
 
   const handleMouseDown = (e, node = null) => {
     const isNode = !!node;
+
+    // SHIFT+CLICK CONNECTION MODE
+    if (isNode && isShiftPressed) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      if (!connectionMode.isConnecting) {
+        // Start connection from this node
+        console.log('[Connection] Starting connection from:', node.id);
+        setConnectionMode({
+          isConnecting: true,
+          sourceNodeId: node.id,
+          mousePos: { x: e.clientX, y: e.clientY }
+        });
+      } else {
+        // Complete connection to this node
+        console.log('[Connection] Attempting to connect to:', node.id);
+        const sourceId = connectionMode.sourceNodeId;
+        const targetId = node.id;
+
+        if (isValidConnection(sourceId, targetId)) {
+          // Valid connection - notify parent
+          console.log('[Connection] ✅ Creating connection:', sourceId, '→', targetId);
+          if (onConnect) {
+            onConnect(sourceId, targetId);
+          }
+          // Optimistically update local state
+          setConnections(prev => [...prev, { source: sourceId, target: targetId }]);
+        }
+
+        // Reset connection mode
+        setConnectionMode({
+          isConnecting: false,
+          sourceNodeId: null,
+          mousePos: { x: 0, y: 0 }
+        });
+      }
+      return;
+    }
+
+    // NORMAL INTERACTION
     if (isNode && !isArrangeMode) {
       e.stopPropagation(); // Stop pan dragging from starting when clicking a locked node
       return;
@@ -541,6 +651,14 @@ const FlowCanvas = ({
   const rafRef = useRef(null);
 
   const handleMouseMove = useCallback((e) => {
+    // Update connection mode mouse position
+    if (connectionMode.isConnecting) {
+      setConnectionMode(prev => ({
+        ...prev,
+        mousePos: { x: e.clientX, y: e.clientY }
+      }));
+    }
+
     if (!dragRef.current.isDragging) return;
 
     const { mode, startX, startY, initialNodeX, initialNodeY, initialPanX, initialPanY, nodeId } = dragRef.current;
@@ -579,7 +697,7 @@ const FlowCanvas = ({
       }
     });
 
-  }, [viewTransform.scale]); // Ensure dependency is correct
+  }, [viewTransform.scale, connectionMode.isConnecting]); // Ensure dependency is correct
 
   const handleMouseUp = () => {
     if (rafRef.current) {
@@ -608,6 +726,38 @@ const FlowCanvas = ({
     }
   };
 
+  // Shift key detection
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(true);
+      }
+      // ESC to cancel connection
+      if (e.key === 'Escape' && connectionMode.isConnecting) {
+        console.log('[Connection] ❌ Cancelled by ESC key');
+        setConnectionMode({
+          isConnecting: false,
+          sourceNodeId: null,
+          mousePos: { x: 0, y: 0 }
+        });
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [connectionMode.isConnecting]);
+
   useEffect(() => {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
@@ -623,7 +773,7 @@ const FlowCanvas = ({
 
 
   const renderConnections = () => {
-    return connections.map((conn, i) => {
+    const connectionLines = connections.map((conn, i) => {
       const source = nodes.find(n => n.id === conn.source);
       const target = nodes.find(n => n.id === conn.target);
       if (!source || !target) return null;
@@ -695,12 +845,57 @@ const FlowCanvas = ({
         </g>
       );
     });
+
+    // Add temporary connection line if in connection mode
+    if (connectionMode.isConnecting) {
+      const sourceNode = nodes.find(n => n.id === connectionMode.sourceNodeId);
+      if (sourceNode) {
+        const sX = sourceNode.position.x + 140;
+        const sY = sourceNode.position.y + 160;
+        // Convert screen coordinates to SVG coordinates
+        const tX = (connectionMode.mousePos.x - viewTransform.x) / viewTransform.scale;
+        const tY = (connectionMode.mousePos.y - viewTransform.y) / viewTransform.scale;
+
+        connectionLines.push(
+          <g key="temp-connection">
+            <defs>
+              <linearGradient id="temp-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#22d3ee" />
+                <stop offset="100%" stopColor="#3b82f6" />
+              </linearGradient>
+            </defs>
+            <line
+              x1={sX}
+              y1={sY}
+              x2={tX}
+              y2={tY}
+              stroke="url(#temp-grad)"
+              strokeWidth="3"
+              strokeDasharray="8 4"
+              fill="none"
+              opacity="0.7"
+              className="animate-pulse"
+            />
+            <circle cx={sX} cy={sY} r="6" fill="#22d3ee" opacity="0.8" />
+            <circle cx={tX} cy={tY} r="6" fill="#3b82f6" opacity="0.8" />
+          </g>
+        );
+      }
+    }
+
+    return connectionLines;
   };
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full bg-gray-50 dark:bg-[#050506] overflow-hidden cursor-grab active:cursor-grabbing border-none transition-colors duration-200 text-gray-500/10 dark:text-white/5"
+      className={`relative w-full h-full bg-gray-50 dark:bg-[#050506] overflow-hidden border-none transition-colors duration-200 text-gray-500/10 dark:text-white/5 ${
+        connectionMode.isConnecting
+          ? 'cursor-crosshair'
+          : isShiftPressed
+            ? 'cursor-cell'
+            : 'cursor-grab active:cursor-grabbing'
+      }`}
       onMouseDown={(e) => handleMouseDown(e)}
       onClick={(e) => {
         if (e.target === containerRef.current || e.target.tagName === 'svg') {
@@ -787,6 +982,7 @@ const FlowCanvas = ({
               agentMCPs={agentMCPsMap[node.id] || []}
               onAddChild={handleAddChildClick} // Pass add child handler
               isArrangeMode={isArrangeMode}
+              isShiftPressed={isShiftPressed}
             />
           ))
         ) : (
@@ -813,10 +1009,29 @@ const FlowCanvas = ({
               agentMCPs={agentMCPsMap[node.id] || []}
               onAddChild={handleAddChildClick}
               isArrangeMode={isArrangeMode}
+              isShiftPressed={isShiftPressed}
             />
           ))
         )}
       </div>
+
+      {/* Shift Key Indicator */}
+      {isShiftPressed && (
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-cyan-500 text-white px-4 py-2 rounded-lg shadow-lg animate-in fade-in slide-in-from-top-2 duration-200 flex items-center gap-2 z-50">
+          <Zap className="w-4 h-4" />
+          <span className="text-sm font-medium">Connection Mode Active - Click agents to connect</span>
+        </div>
+      )}
+
+      {/* Connection Mode Hint */}
+      {connectionMode.isConnecting && (
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg animate-in fade-in slide-in-from-top-2 duration-200 flex items-center gap-2 z-50">
+          <ChevronRight className="w-4 h-4 animate-pulse" />
+          <span className="text-sm font-medium">
+            Click target agent to complete connection (ESC to cancel)
+          </span>
+        </div>
+      )}
 
       <div className="absolute bottom-6 right-6 flex items-center gap-2 bg-white/80 dark:bg-[#1a1d21]/80 backdrop-blur border border-gray-200 dark:border-white/10 p-1.5 rounded-xl shadow-lg">
         {/* Zoom Slider */}
