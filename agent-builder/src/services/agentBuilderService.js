@@ -1,3 +1,5 @@
+import { getServerConfig } from '../utils/serverConfig.js';
+
 const API_BASE_URL = '/api/local';
 
 const agentBuilderService = {
@@ -6,7 +8,7 @@ const agentBuilderService = {
      */
     getAllNetworks: async () => {
         try {
-            const response = await fetch('/api/v1/list');
+            const response = await fetch(`${getServerConfig().neuroSanBase}/api/v1/list`);
             if (!response.ok) throw new Error(`Server returned ${response.status}`);
             const data = await response.json();
             const agents = data.agents || data;
@@ -65,8 +67,9 @@ const agentBuilderService = {
      */
     getNetworkGraph: async (networkName) => {
         // Strategy 1: full config for simple names
+        const { nsflowUrl } = getServerConfig();
         try {
-            const response = await fetch(`/nsflow-api/networkconfig/${networkName}`);
+            const response = await fetch(nsflowUrl(`/networkconfig/${networkName}`));
             if (response.ok) {
                 const data = await response.json();
                 if (data.config && Array.isArray(data.config.tools) && data.config.tools.length > 0) {
@@ -78,7 +81,7 @@ const agentBuilderService = {
         }
 
         // Strategy 2: connectivity graph + per-agent details for slash-path names
-        const connResponse = await fetch(`/nsflow-api/connectivity/${networkName}`);
+        const connResponse = await fetch(nsflowUrl(`/connectivity/${networkName}`));
         if (!connResponse.ok) {
             throw new Error(`Server returned ${connResponse.status} for network "${networkName}"`);
         }
@@ -86,7 +89,7 @@ const agentBuilderService = {
 
         const agentConfigs = await Promise.all(
             nodes.map(node =>
-                fetch(`/nsflow-api/networkconfig/${networkName}/agent/${node.id}`)
+                fetch(nsflowUrl(`/networkconfig/${networkName}/agent/${node.id}`))
                     .then(r => r.ok ? r.json() : null)
                     .catch(() => null)
             )
@@ -171,7 +174,7 @@ CRITICAL RULES:
                 text: `FILE: ${networkPath}.hocon\nYOUR TASK: Modify the existing network EXACTLY matching this PLAN: ${planDescription}.\nCRITICAL: Do not rename the network. If an agent had instructions, it MUST STILL HAVE INSTRUCTIONS. Do not lose any agents!`
             };
 
-            const response = await fetch('/api/v1/agent_network_designer/streaming_chat', {
+            const response = await fetch(`${getServerConfig().neuroSanBase}/api/v1/agent_network_designer/streaming_chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

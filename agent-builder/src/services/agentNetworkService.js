@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getServerConfig } from '../utils/serverConfig';
 
 // Local API Base URL (Vite Middleware) — used only by updatePrompt
 const API_BASE_URL = '/api/local';
@@ -9,7 +10,7 @@ const agentNetworkService = {
      */
     getNetworks: async () => {
         try {
-            const response = await axios.get('/api/v1/list');
+            const response = await axios.get(`${getServerConfig().neuroSanBase}/api/v1/list`);
             const agents = response.data.agents || response.data;
             if (Array.isArray(agents) && agents.length > 0) {
                 return agents.map(a => a.agent_name ?? a);
@@ -31,13 +32,14 @@ const agentNetworkService = {
     getNetworkGraph: async (networkName) => {
         // Primary: remote NSFlow — structure + per-agent instructions in parallel
         try {
-            const connRes = await axios.get(`/nsflow-api/connectivity/${networkName}`);
+            const { nsflowUrl } = getServerConfig();
+            const connRes = await axios.get(nsflowUrl(`/connectivity/${networkName}`));
             const { nodes = [], edges = [] } = connRes.data;
 
             // Fetch each agent's full config (instructions, llm_config, etc.) in parallel
             const agentConfigs = await Promise.all(
                 nodes.map(node =>
-                    axios.get(`/nsflow-api/networkconfig/${networkName}/agent/${node.id}`)
+                    axios.get(nsflowUrl(`/networkconfig/${networkName}/agent/${node.id}`))
                         .then(r => r.data)
                         .catch(() => null)  // individual failures are tolerated
                 )

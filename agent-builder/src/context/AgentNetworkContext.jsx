@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import agentNetworkService from '../services/agentNetworkService';
 import agentBuilderService from '../services/agentBuilderService';
+import { getServerConfig } from '../utils/serverConfig';
 
 const AgentNetworkContext = createContext();
 
@@ -14,8 +15,6 @@ const generateSessionId = () => {
 // Format timestamp
 const formatTimestamp = () => new Date().toISOString().replace('T', ' ').split('.')[0];
 
-// Neuro-SAN server - requests are proxied through Vite to port 8080
-const NEURO_SAN_BASE_URL = '';
 
 export const AgentNetworkProvider = ({ children }) => {
     const [networks, setNetworks] = useState([]);
@@ -104,7 +103,7 @@ export const AgentNetworkProvider = ({ children }) => {
     useEffect(() => {
         const checkServer = async () => {
             try {
-                const r = await fetch(`${NEURO_SAN_BASE_URL}/api/v1/list`, { method: 'GET' });
+                const r = await fetch(`${getServerConfig().neuroSanBase}/api/v1/list`, { method: 'GET' });
                 if (r.ok) {
                     setIsServerAvailable(true);
                     console.log('[NeuroSAN] Server available via /api/v1/list');
@@ -316,7 +315,7 @@ export const AgentNetworkProvider = ({ children }) => {
 
         // --- Connect to nsflow WebSockets ---
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsBase = `${protocol}//${window.location.host}/nsflow`;
+        const wsBase = getServerConfig().getWsBase(protocol);
 
         // 1. Chat WebSocket - bidirectional messaging (triggers telemetry via LogsRegistry)
         try {
@@ -603,7 +602,7 @@ export const AgentNetworkProvider = ({ children }) => {
                 chat_context: chatContextRef.current
             };
 
-            const streamingUrl = `${NEURO_SAN_BASE_URL}/api/v1/${currentNetwork}/streaming_chat`;
+            const streamingUrl = `${getServerConfig().neuroSanBase}/api/v1/${currentNetwork}/streaming_chat`;
 
             const response = await fetch(streamingUrl, {
                 method: 'POST',
