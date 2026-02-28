@@ -2,16 +2,18 @@ const API_BASE_URL = '/api/local';
 
 const agentBuilderService = {
     /**
-     * Get list of all agent networks (direct file scan across registries)
+     * Get list of all agent networks from the remote Neuro SAN server.
      */
     getAllNetworks: async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/all-networks`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch all networks');
-            }
+            const response = await fetch('/api/v1/list');
+            if (!response.ok) throw new Error(`Server returned ${response.status}`);
             const data = await response.json();
-            return data.networks || [];
+            const agents = data.agents || data;
+            if (Array.isArray(agents) && agents.length > 0) {
+                return agents.map(a => a.agent_name ?? a);
+            }
+            return [];
         } catch (error) {
             console.error('Error fetching all networks:', error);
             return [];

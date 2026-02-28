@@ -1,56 +1,23 @@
 import axios from 'axios';
-import { parseHoconToGraph } from '../utils/HoconGraphMapper';
 
-// Local API Base URL (Vite Middleware)
+// Local API Base URL (Vite Middleware) — used only by updatePrompt
 const API_BASE_URL = '/api/local';
-
-// Mock Data for Fallback
-const MOCK_NETWORKS = [
-    "aaosa",
-    "aaosa_basic",
-    "agent_network_architect",
-    "log_analysis_agents",
-    "keybank",
-    "six_thinking_hats"
-];
-
-const MOCK_GRAPH_DATA = {
-    "aaosa": {
-        "nodes": [
-            { "id": "orchestrator", "type": "orch", "data": { "label": "Orchestrator", "instructions": "Main controller" }, "position": { "x": 300, "y": 50 } },
-            { "id": "planner", "type": "agent", "data": { "label": "Planner", "instructions": "Creates plans" }, "position": { "x": 100, "y": 200 } },
-            { "id": "executor", "type": "agent", "data": { "label": "Executor", "instructions": "Executes tasks" }, "position": { "x": 500, "y": 200 } }
-        ],
-        "edges": [
-            { "id": "e1", "source": "orchestrator", "target": "planner", "animated": true },
-            { "id": "e2", "source": "orchestrator", "target": "executor", "animated": true }
-        ]
-    }
-};
 
 const agentNetworkService = {
     /**
-     * Fetches the list of available agent networks from the running Neuro SAN server.
-     * Falls back to local HOCON manifest, then mock data.
+     * Fetches the list of available agent networks from the remote Neuro SAN server.
      */
     getNetworks: async () => {
-        // Primary: fetch live network list from the remote/local Neuro SAN server
         try {
             const response = await axios.get('/api/v1/list');
             const agents = response.data.agents || response.data;
             if (Array.isArray(agents) && agents.length > 0) {
                 return agents.map(a => a.agent_name ?? a);
             }
+            return [];
         } catch (error) {
-            console.warn("Neuro SAN /api/v1/list unavailable, falling back to local manifest:", error.message);
-        }
-        // Fallback: local HOCON manifest via Vite middleware
-        try {
-            const response = await axios.get(`${API_BASE_URL}/networks`);
-            return response.data.networks || response.data;
-        } catch (error) {
-            console.warn("Local API unavailable, using mock networks:", error.message);
-            return MOCK_NETWORKS;
+            console.warn("Neuro SAN /api/v1/list unavailable:", error.message);
+            return [];
         }
     },
 
@@ -105,7 +72,6 @@ const agentNetworkService = {
 
             const agentDetails = {};
             normalizedNodes.forEach(node => {
-                const cfg = cfgMap[node.id] || {};
                 agentDetails[node.id] = {
                     instructions: node.data.instructions,
                     command: node.data.command,
