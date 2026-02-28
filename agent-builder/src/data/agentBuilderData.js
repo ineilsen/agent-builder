@@ -1,28 +1,4 @@
-import { Brain, Zap, Sparkles, MessageSquare, Send, GitBranch, Database, Shuffle, Layers } from 'lucide-react';
-
-export const aiModels = [
-  {
-    id: 'claude',
-    name: 'Claude 3.5',
-    provider: 'Anthropic',
-    icon: Brain,
-    iconBg: 'bg-purple-500'
-  },
-  {
-    id: 'gpt4',
-    name: 'GPT-4 Turbo',
-    provider: 'OpenAI',
-    icon: Zap,
-    iconBg: 'bg-green-500'
-  },
-  {
-    id: 'gemini',
-    name: 'Gemini Pro',
-    provider: 'Google',
-    icon: Sparkles,
-    iconBg: 'bg-blue-500'
-  }
-];
+import { MessageSquare, Send, GitBranch, Database, Shuffle, Layers } from 'lucide-react';
 
 export const components = [
   {
@@ -93,47 +69,3 @@ export const platforms = [
   }
 ];
 
-export const templates = [
-  {
-    id: 'document-processor',
-    name: 'Document Processor',
-    description: 'Extract and classify document content',
-    platform: 'crewai',
-    uses: 156
-  },
-  {
-    id: 'customer-service',
-    name: 'Customer Service Bot',
-    description: 'Handle common citizen queries',
-    platform: 'n8n',
-    uses: 234
-  },
-  {
-    id: 'data-analyst',
-    name: 'Data Analyst',
-    description: 'Analyze and visualize data insights',
-    platform: 'crewai',
-    uses: 89
-  },
-  {
-    id: 'form-assistant',
-    name: 'Form Assistant',
-    description: 'Guide users through form completion',
-    platform: 'neuro',
-    uses: 178
-  },
-  {
-    id: 'research-helper',
-    name: 'Research Helper',
-    description: 'Search and summarize information',
-    platform: 'n8n',
-    uses: 123
-  },
-  {
-    id: 'compliance-checker',
-    name: 'Compliance Checker',
-    description: 'Verify regulatory compliance',
-    platform: 'neuro',
-    uses: 67
-  }
-];

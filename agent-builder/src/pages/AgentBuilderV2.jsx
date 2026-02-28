@@ -1,14 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import agentBuilderService from '../services/agentBuilderService';
 import StudioFlowCanvas from '../components/StudioFlowCanvas';
-import FuturisticPromptEditor from '../components/FuturisticPromptEditor';
 import { parseHoconToGraph } from '../utils/HoconGraphMapper';
-import { Network, Share2, Settings, MessageSquare, Play, Box, X, Save, ChevronRight, ChevronDown, Code, Plus, Bot, Wrench, Globe, Library, Sparkles, Move, Link, AlertCircle, Maximize2, Puzzle, TerminalSquare, Database, Moon, Sun, Download } from 'lucide-react';
+import { Network, Share2, Settings, Box, Save, ChevronRight, ChevronDown, Plus, Bot, Wrench, Globe, Library, Sparkles, Move, AlertCircle, Puzzle, TerminalSquare, Database, Moon, Sun, Download } from 'lucide-react';
 import ComponentLibrary from '../components/ComponentLibrary';
 import DesignerCopilot from '../components/DesignerCopilot';
 import McpMarketplace from '../components/McpMarketplace';
 import SettingsModal from '../components/SettingsModal';
-import ToolIdeEditor from '../components/ToolIdeEditor';
 import NativeGenerationTerminal from '../components/NativeGenerationTerminal';
 import ExecutionLogsPanel from '../components/ExecutionLogsPanel';
 import AgentConfigDrawer from '../components/AgentConfigDrawer';
@@ -30,9 +28,6 @@ const AgentBuilderV2Content = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [agentConfig, setAgentConfig] = useState({});
 
-    // Add Agent Modal State
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
     // UI State
     const [isLibraryOpen, setIsLibraryOpen] = useState(false);
     const [isNetworksOpen, setIsNetworksOpen] = useState(true);
@@ -43,7 +38,6 @@ const AgentBuilderV2Content = () => {
     // Native Compilation Terminal State
     const [nativeLogs, setNativeLogs] = useState([]);
     const [isNativeCompiling, setIsNativeCompiling] = useState(false);
-    const nativeAbortControllerRef = useRef(null);
 
     // Logs Panel State
     const [isLogsPanelCollapsed, setIsLogsPanelCollapsed] = useState(true);
@@ -54,7 +48,6 @@ const AgentBuilderV2Content = () => {
         setIsCopilotOpen(sidebar === 'copilot' ? !isCopilotOpen : false);
         setIsMcpOpen(sidebar === 'mcp' ? !isMcpOpen : false);
     };
-    const [isTesting, setIsTesting] = useState(false);
     const [isArrangeMode, setIsArrangeMode] = useState(false);
     const [isConfigureMode, setIsConfigureMode] = useState(false);
     const [expandedNetworkFolders, setExpandedNetworkFolders] = useState(new Set(['Core']));
@@ -204,7 +197,6 @@ const AgentBuilderV2Content = () => {
     };
 
     const handleCreateNewNetwork = () => {
-        const newNetworkId = `draft_${Date.now()}`;
         setSelectedNetwork('Draft Network');
         setNetworkHoconData(null); // Clear stored HOCON data for new network
 
@@ -237,7 +229,7 @@ const AgentBuilderV2Content = () => {
     };
 
     // Handle Node Click -> Open Drawer
-    const handleNodeClick = (e, node) => {
+    const handleNodeClick = (_, node) => {
         if (!node) {
             // Background click
             setIsDrawerOpen(false);
@@ -368,54 +360,6 @@ const AgentBuilderV2Content = () => {
             await handleSaveToRegistry(true); // Retry with overwrite=true
             setSaveDialogData(null);
         }
-    };
-
-    const handleConfigChange = (field, value) => {
-        setAgentConfig(prev => ({
-            ...prev,
-            [selectedAgentId]: {
-                ...prev[selectedAgentId],
-                [field]: value
-            }
-        }));
-    };
-
-    const handleAddAgent = (type) => {
-        if (!selectedNetwork) return;
-
-        const newId = `${type}_${Date.now().toString().slice(-4)} `;
-        const label = `New ${type.charAt(0).toUpperCase() + type.slice(1)} `;
-
-        // Add to Graph Nodes
-        const newNode = {
-            id: newId,
-            type: type === 'network' ? 'sub-network' : type, // 'agent', 'tool', 'sub-network'
-            data: { label: label, instructions: '' },
-            position: { x: 250, y: 100 } // Default position
-        };
-
-        setGraphData(prev => ({
-            ...prev,
-            nodes: [...prev.nodes, newNode]
-        }));
-
-        // Add to Config
-        setAgentConfig(prev => ({
-            ...prev,
-            [newId]: {
-                label: label,
-                instructions: '',
-                model: 'gpt-4o',
-                tools: [],
-                type: type === 'network' ? 'sub-network' : type
-            }
-        }));
-
-        setIsAddModalOpen(false);
-
-        // Select new agent
-        setSelectedAgentId(newId);
-        setIsDrawerOpen(true);
     };
 
     const handleAddChild = (parentId, type = 'agent') => {
@@ -656,26 +600,6 @@ const AgentBuilderV2Content = () => {
             setNativeLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message: `Fatal Error: ${error.message}`, isError: true }]);
             // alert(`Failed to execute Agent Network Designer: ${error.message}`);
         }
-    };
-
-    const handleTestAgent = () => {
-        if (!graphData.edges || graphData.edges.length === 0) return;
-        setIsTesting(true);
-
-        // Turn all edges animated and purple to simulate Sly-Data flow
-        setGraphData(prev => ({
-            ...prev,
-            edges: prev.edges.map(e => ({ ...e, animated: true, style: { stroke: '#a855f7', strokeWidth: 2 } }))
-        }));
-
-        // Stop animation after 3 seconds
-        setTimeout(() => {
-            setIsTesting(false);
-            setGraphData(prev => ({
-                ...prev,
-                edges: prev.edges.map(e => ({ ...e, animated: false, style: {} }))
-            }));
-        }, 3000);
     };
 
     const currentAgent = agentConfig[selectedAgentId];

@@ -9,7 +9,6 @@ function App() {
                 <Routes>
                     <Route path="/studio" element={<AgentBuilder />} />
                     <Route path="/builder" element={<AgentBuilderV2 />} />
-                    <Route path="/builder-v2" element={<AgentBuilderV2 />} />
                     <Route path="/" element={<AgentBuilder />} />
                 </Routes>
             </div>

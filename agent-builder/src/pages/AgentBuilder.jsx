@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Wrench, Save, Play, Code, Settings, Layers, MessageCircle, Terminal, Sun, Moon, X, Menu, Maximize2, Minimize2 } from 'lucide-react';
-import Breadcrumb from '../components/Breadcrumb';
+import React, { useState, useEffect } from 'react';
+import { Wrench, Play, Settings, Layers, MessageCircle, Sun, Moon, X, Maximize2, Minimize2 } from 'lucide-react';
 import ComponentCard from '../components/ComponentCard';
 import FlowCanvas from '../components/FlowCanvas';
 import ChatPanel from '../components/ChatPanel';
@@ -13,10 +12,10 @@ const AgentBuilderContent = () => {
   const {
     networks, currentNetwork, loadNetwork, graphData, selectAgent, selectedAgentId,
     updateAgentPrompt, isLoading, error,
-    chatMessages, logEntries, isChatConnected, isChatLoading,
+    chatMessages, isChatConnected, isChatLoading,
     connectChat, sendChatMessage, disconnectChat,
     // Real-time animation state
-    activeAgents, agentChain, clearActiveAgents,
+    activeAgents, agentChain,
     addNode
   } = useAgentNetwork();
 
@@ -212,7 +211,7 @@ const AgentBuilderContent = () => {
             <FlowCanvas
               nodes={graphData?.nodes || []}
               connections={graphData?.edges || []}
-              onNodeClick={(e, node) => selectAgent(node?.id)}
+              onNodeClick={(_, node) => selectAgent(node?.id)}
               onMenuClick={(agentId) => setConfigAgentId(agentId)}
               selectedNodeId={selectedAgentId}
               agentConfigs={agentConfigs}

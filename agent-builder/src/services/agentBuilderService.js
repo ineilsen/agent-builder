@@ -53,19 +53,54 @@ const agentBuilderService = {
     },
 
     /**
-     * Get network details (re-using existing parser)
+     * Fetch raw HOCON-compatible config for a network from the remote Neuro SAN server.
+     * Returns an object in the format parseHoconToGraph() expects: { tools: [...], llm_config: {...} }
+     *
+     * Strategy 1: NSFlow /networkconfig/{name} — returns full config with instructions.
+     *             Works for simple names (no slashes).
+     * Strategy 2: NSFlow /connectivity + per-agent /networkconfig/{name}/agent/{id} in parallel.
+     *             Works for all names including slash-paths (e.g. generated/my_network).
      */
     getNetworkGraph: async (networkName) => {
+        // Strategy 1: full config for simple names
         try {
-            const response = await fetch(`${API_BASE_URL}/network-content?path=${encodeURIComponent(networkName)}`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch network graph');
+            const response = await fetch(`/nsflow-api/networkconfig/${networkName}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.config && Array.isArray(data.config.tools) && data.config.tools.length > 0) {
+                    return data.config; // ready for parseHoconToGraph
+                }
             }
-            return await response.json();
-        } catch (error) {
-            console.error('Error fetching network graph:', error);
-            throw error;
+        } catch (err) {
+            console.warn(`NSFlow networkconfig failed for ${networkName}:`, err.message);
         }
+
+        // Strategy 2: connectivity graph + per-agent details for slash-path names
+        const connResponse = await fetch(`/nsflow-api/connectivity/${networkName}`);
+        if (!connResponse.ok) {
+            throw new Error(`Server returned ${connResponse.status} for network "${networkName}"`);
+        }
+        const { nodes = [] } = await connResponse.json();
+
+        const agentConfigs = await Promise.all(
+            nodes.map(node =>
+                fetch(`/nsflow-api/networkconfig/${networkName}/agent/${node.id}`)
+                    .then(r => r.ok ? r.json() : null)
+                    .catch(() => null)
+            )
+        );
+
+        const tools = agentConfigs
+            .filter(Boolean)
+            .map(cfg => ({
+                name: cfg.name,
+                instructions: cfg.instructions || '',
+                tools: cfg.tools || [],
+                llm_config: cfg.llm_config,
+                command: cfg.command,
+            }));
+
+        return { tools }; // parseHoconToGraph expects { tools: [...] }
     },
 
     /**

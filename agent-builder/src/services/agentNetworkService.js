@@ -30,41 +30,103 @@ const MOCK_GRAPH_DATA = {
 
 const agentNetworkService = {
     /**
-     * Fetches the list of available locally registered agent networks (HOCON files).
+     * Fetches the list of available agent networks from the running Neuro SAN server.
+     * Falls back to local HOCON manifest, then mock data.
      */
     getNetworks: async () => {
+        // Primary: fetch live network list from the remote/local Neuro SAN server
+        try {
+            const response = await axios.get('/api/v1/list');
+            const agents = response.data.agents || response.data;
+            if (Array.isArray(agents) && agents.length > 0) {
+                return agents.map(a => a.agent_name ?? a);
+            }
+        } catch (error) {
+            console.warn("Neuro SAN /api/v1/list unavailable, falling back to local manifest:", error.message);
+        }
+        // Fallback: local HOCON manifest via Vite middleware
         try {
             const response = await axios.get(`${API_BASE_URL}/networks`);
             return response.data.networks || response.data;
         } catch (error) {
-            console.warn("Local API unavailable, using mock networks:", error);
+            console.warn("Local API unavailable, using mock networks:", error.message);
             return MOCK_NETWORKS;
         }
     },
 
     /**
-     * Fetches the raw HOCON content (parsed to JSON by server) and maps it.
+     * Fetches the network graph from the remote Neuro SAN server.
+     * Primary: NSFlow connectivity + per-agent config fetched in parallel.
+     *   - connectivity/{name}          → nodes + edges structure (works for all names incl. slash-paths)
+     *   - networkconfig/{name}/agent/{id} → instructions + llm_config per agent (also works for slash-paths)
+     * Fallback: local HOCON file via Vite middleware (original behaviour).
      */
     getNetworkGraph: async (networkName) => {
+        // Primary: remote NSFlow — structure + per-agent instructions in parallel
         try {
-            const response = await axios.get(`${API_BASE_URL}/network-content`, {
-                params: { path: networkName }
+            const connRes = await axios.get(`/nsflow-api/connectivity/${networkName}`);
+            const { nodes = [], edges = [] } = connRes.data;
+
+            // Fetch each agent's full config (instructions, llm_config, etc.) in parallel
+            const agentConfigs = await Promise.all(
+                nodes.map(node =>
+                    axios.get(`/nsflow-api/networkconfig/${networkName}/agent/${node.id}`)
+                        .then(r => r.data)
+                        .catch(() => null)  // individual failures are tolerated
+                )
+            );
+
+            // Build a map: agentId → config
+            const cfgMap = {};
+            nodes.forEach((node, i) => {
+                if (agentConfigs[i]) cfgMap[node.id] = agentConfigs[i];
             });
 
-            // Map JSON to Graph
-            return parseHoconToGraph(response.data);
+            // Merge connectivity nodes with per-agent config data
+            const normalizedNodes = nodes.map(node => {
+                const cfg = cfgMap[node.id] || {};
+                const llm = cfg.llm_config || {};
+                return {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        dropdownTools: node.data.dropdown_tools || [],
+                        subNetworks: node.data.sub_networks || [],
+                        instructions: cfg.instructions || '',
+                        command: cfg.command || '',
+                        class: llm.class,
+                        llmModel: llm.model_name,
+                        llmProvider: llm.class,
+                        hasCustomLlm: !!cfg.llm_config,
+                        toolCount: (node.data.dropdown_tools?.length || 0) + (node.data.sub_networks?.length || 0),
+                    }
+                };
+            });
 
+            const agentDetails = {};
+            normalizedNodes.forEach(node => {
+                const cfg = cfgMap[node.id] || {};
+                agentDetails[node.id] = {
+                    instructions: node.data.instructions,
+                    command: node.data.command,
+                    class: node.data.class,
+                    dropdownTools: node.data.dropdownTools,
+                    subNetworks: node.data.subNetworks,
+                    llmModel: node.data.llmModel,
+                    llmProvider: node.data.llmProvider,
+                    hasCustomLlm: node.data.hasCustomLlm,
+                };
+            });
+
+            return { nodes: normalizedNodes, edges, agentDetails };
         } catch (error) {
-            console.warn(`Failed to fetch graph for ${networkName}, using mock if available:`, error);
-            if (MOCK_GRAPH_DATA[networkName]) {
-                return MOCK_GRAPH_DATA[networkName];
-            }
-            // Return a basic placeholder structure
+            console.warn(`Remote NSFlow graph fetch failed for ${networkName}:`, error.message);
             return {
                 nodes: [
-                    { id: "error-node", type: "system", data: { label: `Error loading ${networkName}` }, position: { x: 250, y: 100 } }
+                    { id: "error-node", type: "system", data: { label: `Failed to load "${networkName}" from server` }, position: { x: 250, y: 100 } }
                 ],
-                edges: []
+                edges: [],
+                agentDetails: {}
             };
         }
     },
