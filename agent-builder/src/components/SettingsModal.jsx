@@ -1,79 +1,110 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, Server, BrainCircuit, Cloud, Box, Database, Activity, Shield, Save, Check } from 'lucide-react';
+
+const STORAGE_KEY = 'agent_builder_settings';
+
+/** Parse a URL string into { host, port, protocol } with safe fallbacks. */
+const parseUrl = (raw, defaultHost, defaultPort) => {
+    try {
+        const u = new URL(raw);
+        return {
+            host: u.hostname || defaultHost,
+            port: u.port || defaultPort,
+            protocol: u.protocol.replace(':', '') || 'http',
+        };
+    } catch {
+        return { host: defaultHost, port: defaultPort, protocol: 'http' };
+    }
+};
+
+const neuroSan = parseUrl(import.meta.env.VITE_NEURO_SAN_URL || '', 'localhost', '8080');
+const nsflow   = parseUrl(import.meta.env.VITE_NSFLOW_URL   || '', 'localhost', '4173');
+
+const DEFAULT_SETTINGS = {
+    // Server & Core — seeded from VITE_NEURO_SAN_URL / VITE_NSFLOW_URL env vars
+    NEURO_SAN_SERVER_HOST: neuroSan.host,
+    NEURO_SAN_SERVER_CONNECTION: neuroSan.protocol,
+    NEURO_SAN_SERVER_HTTP_PORT: neuroSan.port,
+    NEURO_SAN_WEB_CLIENT_PORT: nsflow.port,
+    AGENT_SERVICE_LOG_JSON: "logging.json",
+    THINKING_FILE: "/tmp/agent_thinking.txt",
+
+    // LLM Providers
+    OPENAI_API_KEY: "",
+    ANTHROPIC_API_KEY: "",
+    GOOGLE_API_KEY: "",
+    AWS_ACCESS_KEY_ID: "",
+    AWS_SECRET_ACCESS_KEY: "",
+
+    // Global LLM Defaults (from llm_config.hocon)
+    DEFAULT_LLM_CLASS: "azure-openai",
+    DEFAULT_LLM_MODEL_NAME: "gpt-4o",
+
+    // Azure OpenAI
+    AZURE_OPENAI_ENDPOINT: "",
+    OPENAI_API_VERSION: "",
+    AZURE_OPENAI_API_KEY: "",
+    AZURE_OPENAI_DEPLOYMENT_NAME: "",
+
+    // Intranet & ServiceNow
+    MI_BASE_URL: "",
+    MI_APP_URL: "",
+    MI_INTRANET: "",
+    MI_HCM: "",
+    MI_ABSENCE_MANAGEMENT: "",
+    MI_TRAVEL_AND_EXPENSE: "",
+    MI_GSD: "",
+    SERVICENOW_INSTANCE_URL: "",
+    SERVICENOW_USER: "",
+    SERVICENOW_PWD: "",
+    SERVICENOW_CALLER_EMAIL: "",
+    SERVICENOW_GET_AGENTS_QUERY: "",
+
+    // Cloud & External APIs (Agentforce, Agentspace, Brave)
+    AGENTFORCE_MY_DOMAIN_URL: "",
+    AGENTFORCE_AGENT_ID: "",
+    AGENTFORCE_CLIENT_ID: "",
+    AGENTFORCE_CLIENT_SECRET: "",
+    GOOGLE_APPLICATION_CREDENTIALS: "",
+    SERVICE_ACCT_EMAIL: "",
+    ENGINE_ID: "",
+    GCP_PROJECT_ID: "",
+    GCP_LOCATION: "",
+    BRAVE_API_KEY: "",
+    BRAVE_URL: "https://api.search.brave.com/res/v1/web/search?q=",
+    BRAVE_TIMEOUT: "30",
+
+    // Observability
+    PHOENIX_ENABLED: "false",
+    PHOENIX_AUTOSTART: "false",
+    LOGBRIDGE_ENABLED: "true",
+};
+
+/** Load persisted settings from localStorage, falling back to env-seeded defaults. */
+const loadSettings = () => {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            // Merge: stored values override defaults so new fields still appear
+            return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+        }
+    } catch { /* ignore corrupt storage */ }
+    return DEFAULT_SETTINGS;
+};
 
 const SettingsModal = ({ isOpen, onClose }) => {
     const [activeTab, setActiveTab] = useState('server');
     const [savedState, setSavedState] = useState(false);
-
-    // Initial mockup data based on .env.example
-    const [settings, setSettings] = useState({
-        // Server & Core
-        NEURO_SAN_SERVER_HOST: "localhost",
-        NEURO_SAN_SERVER_CONNECTION: "http",
-        NEURO_SAN_SERVER_HTTP_PORT: "8080",
-        NEURO_SAN_WEB_CLIENT_PORT: "5003",
-        AGENT_SERVICE_LOG_JSON: "logging.json",
-        THINKING_FILE: "/tmp/agent_thinking.txt",
-
-        // LLM Providers
-        OPENAI_API_KEY: "",
-        ANTHROPIC_API_KEY: "",
-        GOOGLE_API_KEY: "",
-        AWS_ACCESS_KEY_ID: "",
-        AWS_SECRET_ACCESS_KEY: "",
-
-        // Global LLM Defaults (from llm_config.hocon)
-        DEFAULT_LLM_CLASS: "azure-openai",
-        DEFAULT_LLM_MODEL_NAME: "gpt-4o",
-
-        // Azure OpenAI
-        AZURE_OPENAI_ENDPOINT: "",
-        OPENAI_API_VERSION: "",
-        AZURE_OPENAI_API_KEY: "",
-        AZURE_OPENAI_DEPLOYMENT_NAME: "",
-
-        // Intranet & ServiceNow
-        MI_BASE_URL: "",
-        MI_APP_URL: "",
-        MI_INTRANET: "",
-        MI_HCM: "",
-        MI_ABSENCE_MANAGEMENT: "",
-        MI_TRAVEL_AND_EXPENSE: "",
-        MI_GSD: "",
-        SERVICENOW_INSTANCE_URL: "",
-        SERVICENOW_USER: "",
-        SERVICENOW_PWD: "",
-        SERVICENOW_CALLER_EMAIL: "",
-        SERVICENOW_GET_AGENTS_QUERY: "",
-
-        // Cloud & External APIs (Agentforce, Agentspace, Brave)
-        AGENTFORCE_MY_DOMAIN_URL: "",
-        AGENTFORCE_AGENT_ID: "",
-        AGENTFORCE_CLIENT_ID: "",
-        AGENTFORCE_CLIENT_SECRET: "",
-        GOOGLE_APPLICATION_CREDENTIALS: "",
-        SERVICE_ACCT_EMAIL: "",
-        ENGINE_ID: "",
-        GCP_PROJECT_ID: "",
-        GCP_LOCATION: "",
-        BRAVE_API_KEY: "",
-        BRAVE_URL: "https://api.search.brave.com/res/v1/web/search?q=",
-        BRAVE_TIMEOUT: "30",
-
-        // Observability
-        PHOENIX_ENABLED: "false",
-        PHOENIX_AUTOSTART: "false",
-        LOGBRIDGE_ENABLED: "true",
-    });
+    const [settings, setSettings] = useState(loadSettings);
 
     const handleChange = (key, value) => {
         setSettings(prev => ({ ...prev, [key]: value }));
     };
 
     const handleSave = () => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
         setSavedState(true);
         setTimeout(() => setSavedState(false), 2000);
-        // In a real app, this would write to a backend endpoint or local storage.
     };
 
     if (!isOpen) return null;
