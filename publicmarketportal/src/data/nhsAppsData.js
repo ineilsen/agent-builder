@@ -19,7 +19,7 @@ export const nhsApps = [
         status: 'Available',
         icon: Stethoscope,
         iconBg: 'bg-blue-600',
-        externalUrl: 'https://ddna-cognizant0493--medpalm.soului.dh.soulmachines.cloud/?sig=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3Njk2MDkyNzgsImlzcyI6InNpZ25lZF91cmwtZTNlMzJmZmMtMDViYy00Y2Y4LTk0NTktNDNiMGU4YjRlNDE5IiwiZXhwIjoxODU1OTIyODc4LCJlbWFpbCI6ImNvZ25pemFudDA0OTMtLW1lZHBhbG1AZGRuYS5zdHVkaW8iLCJzb3VsSWQiOiJkZG5hLWNvZ25pemFudDA0OTMtLW1lZHBhbG0ifQ.ugHXtUjDtcnXxEobRR306iiqLH4SmKveXXJ8r1HCHSg'
+        externalUrl: 'https://ddna-cognizant342c--explorer.soului.dh.soulmachines.cloud/?sig=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NjU0MDAzMDAsImlzcyI6InNpZ25lZF91cmwtMTgzN2M1Y2ItZjk3Ni00YWI5LWFhNDUtZmEzNDFmYjYyMmVmIiwiZXhwIjoxODUxNzEzOTAwLCJlbWFpbCI6ImNvZ25pemFudDM0MmMtLWV4cGxvcmVyQGRkbmEuc3R1ZGlvIiwic291bElkIjoiZGRuYS1jb2duaXphbnQzNDJjLS1leHBsb3JlciJ9.TdMyrX0o7YMs-Eq8gviHUrLGAKGYStfzgPe3NrjTOi0'
     },
     {
         id: 'jml-orchestration',
